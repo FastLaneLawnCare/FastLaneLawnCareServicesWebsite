@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import MyBookings from './pages/MyBookings';
 import AdminDashboard from './pages/AdminDashboard';
 import AuthCallback from './pages/AuthCallback';
+import BookingSuccess from './pages/BookingSuccess';
 
 function AppRouter() {
   const location = useLocation();
@@ -22,6 +23,7 @@ function AppRouter() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/booking" element={<Booking />} />
+      <Route path="/booking-success" element={<BookingSuccess />} />
       <Route path="/quote" element={<QuoteRequest />} />
       <Route path="/login" element={<Login />} />
       <Route path="/my-bookings" element={<MyBookings />} />

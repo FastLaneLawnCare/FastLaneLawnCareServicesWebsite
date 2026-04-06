@@ -706,6 +706,145 @@ async def stripe_webhook(request: Request):
     
     return {"status": "received"}
 
+# ==================== PAYPAL PAYMENT ENDPOINTS ====================
+
+@api_router.post("/payments/paypal/create-order")
+async def create_paypal_order(payment_data: PaymentSessionCreate, http_request: Request):
+    booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    # Initialize PayPal client
+    paypal_client_id = os.environ.get("PAYPAL_CLIENT_ID", "test")
+    paypal_secret = os.environ.get("PAYPAL_SECRET", "test")
+    environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    paypal_client = PayPalHttpClient(environment)
+    
+    # Create PayPal order
+    request_obj = OrdersCreateRequest()
+    request_obj.prefer('return=representation')
+    
+    host_url = str(http_request.base_url).rstrip('/')
+    return_url = f"{host_url}/booking-success"
+    cancel_url = f"{host_url}/booking"
+    
+    request_obj.request_body({
+        "intent": "CAPTURE",
+        "application_context": {
+            "return_url": return_url,
+            "cancel_url": cancel_url,
+            "brand_name": "Fast Lane Lawn Care",
+            "user_action": "PAY_NOW"
+        },
+        "purchase_units": [{
+            "reference_id": payment_data.booking_id,
+            "description": f"Lawn service booking - {booking['date']} at {booking['time']}",
+            "amount": {
+                "currency_code": "USD",
+                "value": str(float(booking["amount"]))
+            }
+        }]
+    })
+    
+    try:
+        response = paypal_client.execute(request_obj)
+        order_id = response.result.id
+        
+        # Get approval URL
+        approval_url = None
+        for link in response.result.links:
+            if link.rel == "approve":
+                approval_url = link.href
+                break
+        
+        # Store transaction
+        await db.payment_transactions.insert_one({
+            "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+            "booking_id": payment_data.booking_id,
+            "paypal_order_id": order_id,
+            "amount": booking["amount"],
+            "currency": "usd",
+            "payment_type": "paypal",
+            "payment_status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "order_id": order_id,
+            "approval_url": approval_url
+        }
+        
+    except Exception as e:
+        logger.error(f"PayPal order creation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create PayPal order: {str(e)}")
+
+@api_router.post("/payments/paypal/capture/{order_id}")
+async def capture_paypal_order(order_id: str):
+    transaction = await db.payment_transactions.find_one({"paypal_order_id": order_id})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    # Check if already captured
+    if transaction.get("payment_status") == "paid":
+        return {"status": "complete", "payment_status": "paid"}
+    
+    # Initialize PayPal client
+    paypal_client_id = os.environ.get("PAYPAL_CLIENT_ID", "test")
+    paypal_secret = os.environ.get("PAYPAL_SECRET", "test")
+    environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    paypal_client = PayPalHttpClient(environment)
+    
+    # Capture order
+    request_obj = OrdersCaptureRequest(order_id)
+    
+    try:
+        response = paypal_client.execute(request_obj)
+        
+        if response.result.status == "COMPLETED":
+            # Update transaction
+            await db.payment_transactions.update_one(
+                {"paypal_order_id": order_id},
+                {"$set": {
+                    "payment_status": "paid",
+                    "status": "complete",
+                    "captured_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            
+            # Update booking
+            booking_id = transaction["booking_id"]
+            await db.bookings.update_one(
+                {"booking_id": booking_id},
+                {"$set": {"payment_status": "paid"}}
+            )
+            
+            return {
+                "status": "complete",
+                "payment_status": "paid",
+                "order_id": order_id
+            }
+        else:
+            return {
+                "status": response.result.status,
+                "payment_status": "pending"
+            }
+            
+    except Exception as e:
+        logger.error(f"PayPal capture error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to capture PayPal order: {str(e)}")
+
+@api_router.get("/payments/paypal/status/{order_id}")
+async def get_paypal_status(order_id: str):
+    transaction = await db.payment_transactions.find_one({"paypal_order_id": order_id})
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    return {
+        "status": transaction.get("status", "pending"),
+        "payment_status": transaction.get("payment_status", "pending"),
+        "order_id": order_id
+    }
+
 # ==================== STARTUP EVENTS ====================
 
 @app.on_event("startup")

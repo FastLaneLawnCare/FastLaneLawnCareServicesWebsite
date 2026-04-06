@@ -68,12 +68,17 @@ export default function Booking() {
         toast.success('Booking created! Pay cash on service day.');
         setTimeout(() => navigate('/my-bookings'), 2000);
       } else if (paymentMethod === 'stripe') {
-        const origin = window.location.origin;
         const { data: sessionData } = await axios.post(`${API}/payments/stripe/create-session`, {
           booking_id: data.booking_id,
           payment_type: 'stripe'
         });
         window.location.href = sessionData.url;
+      } else if (paymentMethod === 'paypal') {
+        const { data: paypalData } = await axios.post(`${API}/payments/paypal/create-order`, {
+          booking_id: data.booking_id,
+          payment_type: 'paypal'
+        });
+        window.location.href = paypalData.approval_url;
       }
     } catch (error) {
       toast.error('Failed to create booking');
@@ -296,6 +301,17 @@ export default function Booking() {
                 }`}
               >
                 Pay with Stripe (Card)
+              </button>
+              <button
+                data-testid="payment-method-paypal"
+                onClick={() => setPaymentMethod('paypal')}
+                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${
+                  paymentMethod === 'paypal'
+                    ? 'bg-[#CCFF00] text-black'
+                    : 'bg-white text-black hover:bg-[#E4E4E7]'
+                }`}
+              >
+                Pay with PayPal
               </button>
               <button
                 data-testid="payment-method-cash"
