@@ -1,0 +1,105 @@
+{
+  "theme": "light",
+  "archetype": "Archetype 4 (Swiss & High-Contrast) + Energetic Performance Twist",
+  "brand_identity": {
+    "name": "Fast Lane Lawn Care",
+    "vibe": "Bold, Energetic, Fast, Reliable, Neo-Brutalist",
+    "description": "A high-performance lawn care service promising fast, pristine results. Combining the trustworthiness of outdoor services with the high-octane energy of a sports/performance brand."
+  },
+  "colors": {
+    "background": "#FFFFFF",
+    "foreground": "#0A0A0A",
+    "primary": "#CCFF00",
+    "primary_foreground": "#0A0A0A",
+    "secondary": "#F4F4F5",
+    "secondary_foreground": "#0A0A0A",
+    "accent": "#0A0A0A",
+    "accent_foreground": "#FFFFFF",
+    "muted": "#E4E4E7",
+    "muted_foreground": "#71717A",
+    "destructive": "#FF3B30",
+    "destructive_foreground": "#FFFFFF",
+    "border": "#0A0A0A",
+    "ring": "#CCFF00",
+    "surface_strategies": {
+      "cards": "Neo-brutalist: 2px solid #0A0A0A border, flat #FFFFFF background, sharp corners (rounded-none or max rounded-sm), heavy 4px/4px drop shadow on hover.",
+      "header": "Solid background with hard bottom border (border-b-2 border-black) to maintain the bold, structured look.",
+      "dashboards": "Grid borders exposed (border-collapse style) with 1px black borders separating metrics and tables."
+    }
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Cabinet Grotesk, sans-serif",
+      "style": "font-black tracking-tight uppercase",
+      "h1_classes": "text-5xl sm:text-6xl font-black tracking-tighter uppercase",
+      "h2_classes": "text-3xl sm:text-4xl font-bold tracking-tight uppercase",
+      "h3_classes": "text-xl sm:text-2xl font-bold uppercase",
+      "h4_classes": "text-lg sm:text-xl font-bold"
+    },
+    "body": {
+      "font_family": "Manrope, sans-serif",
+      "style": "font-medium text-base leading-relaxed tracking-normal",
+      "small_classes": "text-sm font-semibold tracking-wide uppercase"
+    },
+    "rules": [
+      "No generic 'Inter' for headings. Cabinet Grotesk ensures a punchy, athletic, modern feel.",
+      "Limit font weights to Medium (500) for body and Black (900) for headings to create extreme contrast."
+    ]
+  },
+  "layout_and_spacing": {
+    "spacing_scale": "Generous: Use p-6, p-8 for cards; py-24 for marketing sections.",
+    "marketing_page": "Asymmetric bento grids, overlapping large typography, high-contrast sections (alternating white background and pitch-black backgrounds).",
+    "dashboard_page": "Dense 'Control Room' grid layout. Zero inner margin between major panels, separated by harsh 1px borders. Use h-full to stretch items.",
+    "borders_and_radius": "Sharp edges (rounded-none) or very subtle (rounded-sm) to match the bold/fast aesthetic. Avoid soft, pill-shaped UI."
+  },
+  "motion_and_interactions": {
+    "hover_states": "Interactive elements should have a brutalist lift: -translate-y-1, add a hard drop-shadow-[4px_4px_0px_#0A0A0A].",
+    "transitions": "Fast and snappy. transition-transform duration-150 ease-out.",
+    "loading": "Fast, kinetic loading bars using the primary Electric Lime (#CCFF00) color."
+  },
+  "components": {
+    "buttons": "Square edges, solid colors. Primary CTA: bg-[#CCFF00] text-black border-2 border-black hover:bg-black hover:text-[#CCFF00].",
+    "booking_flow": {
+      "strategy": "Multi-stage wizard (Stepper). One decision per screen to maintain momentum.",
+      "stage_1": "Date Selection: Custom Shadcn Calendar component, full width, large tap targets.",
+      "stage_2": "Time Selection: Grid of time slots (11am - 5pm). Selectable bold blocks.",
+      "stage_3": "Details: Shadcn Form with large input fields (h-14, text-lg).",
+      "stage_4": "Payment: High-contrast summary card with Stripe/PayPal payment buttons."
+    },
+    "quote_request": "Modal or dedicated page with Shadcn Form. Must include a styled file upload area (border-dashed border-2 border-black bg-secondary) for 'Property Size/Photo Upload'.",
+    "admin_dashboard": "Sidebar navigation (dark mode: bg-[#0A0A0A] text-white). Main content area in Light mode for data legibility. Use Shadcn Tables with hover state highlights."
+  },
+  "icons_and_assets": {
+    "icon_library": "@phosphor-icons/react",
+    "icon_style": "Duotone or Bold weight. Thick, legible lines to match the typography."
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1625766924175-4c010046038d?crop=entropy&cs=srgb&fm=jpg&w=1920&q=85",
+      "description": "High-quality, vibrant green grass field, used with a dark overlay (bg-black/40) to make white and lime green text pop."
+    },
+    "gallery_1": {
+      "url": "https://images.unsplash.com/photo-1758414335609-fe94a3b089c0?crop=entropy&cs=srgb&fm=jpg&w=800&q=85",
+      "description": "Landscaping beautiful backyard"
+    },
+    "gallery_2": {
+      "url": "https://images.unsplash.com/photo-1761637823276-7d714eb45cb1?crop=entropy&cs=srgb&fm=jpg&w=800&q=85",
+      "description": "Curved stone steps patio"
+    },
+    "gallery_3": {
+      "url": "https://images.unsplash.com/photo-1774597998589-a47635d76ee5?crop=entropy&cs=srgb&fm=jpg&w=800&q=85",
+      "description": "Lush garden with house"
+    }
+  },
+  "testing": {
+    "data_testid_rule": "ALL interactive elements, forms, and navigation links MUST include a data-testid attribute formatted as kebab-case, role-based."
+  },
+  "instructions_to_main_agent": [
+    "Use pure HTML/Tailwind for the landing page layouts (Bento grids, overlapping). Do not use Shadcn 'Card' for structural marketing sections.",
+    "Implement the multi-stage booking flow using a clear, stepped UI. Do not put all inputs on a single long scrollable form.",
+    "For the Admin dashboard, use Shadcn Tabs or a Sidebar layout. Keep the layout dense and highly functional.",
+    "Use standard JWT auth flows + Google OAuth buttons. Design the login/register screens with the same bold brutalist aesthetic (lime green and black).",
+    "Ensure the Quote Request form handles photo uploads visually (even if mocked in functionality).",
+    "Strictly follow the color hex codes provided. DO NOT use standard Tailwind colors (blue, teal, purple) anywhere."
+  ]
+}
