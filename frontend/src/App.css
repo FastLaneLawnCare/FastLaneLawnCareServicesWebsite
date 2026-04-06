@@ -1,34 +1,36 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cabinet Grotesk', 'Manrope', sans-serif;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.neo-brutalist-card {
+  border: 2px solid #0A0A0A;
+  background: #FFFFFF;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
-.App-link {
-    color: #61dafb;
+.neo-brutalist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0px #0A0A0A;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.lime-button {
+  background-color: #CCFF00;
+  color: #0A0A0A;
+  border: 2px solid #0A0A0A;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.15s ease-out;
+}
+
+.lime-button:hover {
+  background-color: #0A0A0A;
+  color: #CCFF00;
+}
+
+.header-border {
+  border-bottom: 2px solid #0A0A0A;
 }
