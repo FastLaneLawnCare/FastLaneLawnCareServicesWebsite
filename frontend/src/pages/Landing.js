@@ -76,8 +76,7 @@ export default function Landing() {
               { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/2qzzgrlp_2026-03-28%2011.44.07.jpg', title: 'Yard Transformation' },
               { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/x2iw3so3_2026-03-28%2011.44.09.jpg', title: 'Fresh Cut Lawns' },
               { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/29w2f6id_2026-03-28%2011.44.17.jpg', title: 'Precision Mowing' },
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/tnokpzg4_2026-03-28%2011.44.04.jpg', title: 'Crisp Clean Cuts' },
-              { url: 'https://images.unsplash.com/photo-1758414335609-fe94a3b089c0?crop=entropy&cs=srgb&fm=jpg&w=800&q=85', title: 'Beautiful Landscaping' }
+              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/tnokpzg4_2026-03-28%2011.44.04.jpg', title: 'Crisp Clean Cuts' }
             ].map((img, idx) => (
               <div
                 key={idx}
