@@ -72,9 +72,9 @@ export default function Landing() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
+              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/cpyhjggy_2026-03-28%2011.43.57.jpg', title: 'Professional Lawn Service' },
               { url: 'https://images.unsplash.com/photo-1758414335609-fe94a3b089c0?crop=entropy&cs=srgb&fm=jpg&w=800&q=85', title: 'Beautiful Backyard' },
-              { url: 'https://images.unsplash.com/photo-1761637823276-7d714eb45cb1?crop=entropy&cs=srgb&fm=jpg&w=800&q=85', title: 'Stone Steps Patio' },
-              { url: 'https://images.unsplash.com/photo-1774597998589-a47635d76ee5?crop=entropy&cs=srgb&fm=jpg&w=800&q=85', title: 'Lush Garden' }
+              { url: 'https://images.unsplash.com/photo-1761637823276-7d714eb45cb1?crop=entropy&cs=srgb&fm=jpg&w=800&q=85', title: 'Stone Steps Patio' }
             ].map((img, idx) => (
               <div
                 key={idx}
