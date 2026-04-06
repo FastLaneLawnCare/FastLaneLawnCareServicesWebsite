@@ -2,6 +2,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'sonner';
+import InstallPWA from './components/InstallPWA';
 
 import Landing from './pages/Landing';
 import Booking from './pages/Booking';
@@ -20,15 +21,18 @@ function AppRouter() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/booking" element={<Booking />} />
-      <Route path="/booking-success" element={<BookingSuccess />} />
-      <Route path="/quote" element={<QuoteRequest />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/my-bookings" element={<MyBookings />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/booking" element={<Booking />} />
+        <Route path="/booking-success" element={<BookingSuccess />} />
+        <Route path="/quote" element={<QuoteRequest />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+      <InstallPWA />
+    </>
   );
 }
 
