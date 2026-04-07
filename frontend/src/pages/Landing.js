@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Phone, Envelope } from '@phosphor-icons/react';
+import { Calendar, Clock, Phone, Envelope, MapPin } from '@phosphor-icons/react';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -112,19 +112,26 @@ export default function Landing() {
           >
             Get In Touch
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex items-center justify-center gap-3" data-testid="contact-phone">
               <Phone size={32} weight="bold" className="text-[#CCFF00]" />
               <div className="text-left">
                 <p className="text-sm uppercase font-semibold text-[#CCFF00]">Phone</p>
-                <p className="text-lg font-medium">(555) 123-4567</p>
+                <p className="text-lg font-medium">(331) 551-9080</p>
               </div>
             </div>
             <div className="flex items-center justify-center gap-3" data-testid="contact-email">
               <Envelope size={32} weight="bold" className="text-[#CCFF00]" />
               <div className="text-left">
                 <p className="text-sm uppercase font-semibold text-[#CCFF00]">Email</p>
-                <p className="text-lg font-medium">info@fastlanelawn.com</p>
+                <p className="text-lg font-medium break-all">FastLaneLawnBusiness@gmail.com</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-3" data-testid="contact-address">
+              <MapPin size={32} weight="bold" className="text-[#CCFF00]" />
+              <div className="text-left">
+                <p className="text-sm uppercase font-semibold text-[#CCFF00]">Address</p>
+                <p className="text-base font-medium">310 Macadamia Dr<br/>Bloomington, IL 61705</p>
               </div>
             </div>
           </div>

@@ -135,31 +135,33 @@ export default function Booking() {
             >
               Select Date
             </h2>
-            <div className="border-2 border-black p-6">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
-                className="w-full"
-                classNames={{
-                  months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                  month: "space-y-4",
-                  caption: "flex justify-center pt-1 relative items-center",
-                  caption_label: "text-lg font-bold uppercase",
-                  nav: "space-x-1 flex items-center",
-                  nav_button: "h-10 w-10 bg-transparent p-0 border-2 border-black hover:bg-[#CCFF00] transition",
-                  table: "w-full border-collapse space-y-1",
-                  head_row: "flex",
-                  head_cell: "text-black rounded-md w-12 font-bold text-sm uppercase",
-                  row: "flex w-full mt-2",
-                  cell: "h-12 w-12 text-center text-sm p-0 relative",
-                  day: "h-12 w-12 p-0 font-bold border-2 border-black hover:bg-[#CCFF00] transition",
-                  day_selected: "bg-[#CCFF00] text-black border-black",
-                  day_today: "bg-[#E4E4E7]",
-                  day_disabled: "text-[#71717A] opacity-50"
-                }}
-              />
+            <div className="border-2 border-black p-4 sm:p-6 flex justify-center">
+              <div className="w-full max-w-md">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date()}
+                  className="w-full scale-90 sm:scale-100"
+                  classNames={{
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-base sm:text-lg font-bold uppercase",
+                    nav: "space-x-1 flex items-center",
+                    nav_button: "h-8 w-8 sm:h-10 sm:w-10 bg-transparent p-0 border-2 border-black hover:bg-[#CCFF00] transition",
+                    table: "w-full border-collapse space-y-1",
+                    head_row: "flex",
+                    head_cell: "text-black rounded-md w-8 sm:w-12 font-bold text-xs sm:text-sm uppercase",
+                    row: "flex w-full mt-2",
+                    cell: "h-8 w-8 sm:h-12 sm:w-12 text-center text-sm p-0 relative",
+                    day: "h-8 w-8 sm:h-12 sm:w-12 p-0 font-bold border-2 border-black hover:bg-[#CCFF00] transition text-xs sm:text-base",
+                    day_selected: "bg-[#CCFF00] text-black border-black",
+                    day_today: "bg-[#E4E4E7]",
+                    day_disabled: "text-[#71717A] opacity-50"
+                  }}
+                />
+              </div>
             </div>
             <button
               data-testid="next-button"
