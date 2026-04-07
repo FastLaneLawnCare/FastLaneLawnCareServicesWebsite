@@ -86,6 +86,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleBookingDelete = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to delete this booking?')) return;
+    
+    try {
+      await axios.delete(`${API}/bookings/${bookingId}`, { withCredentials: true });
+      toast.success('Booking deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete booking');
+    }
+  };
+
+  const handleInvoiceDelete = async (invoiceId) => {
+    if (!window.confirm('Are you sure you want to delete this invoice?')) return;
+    
+    try {
+      await axios.delete(`${API}/invoices/${invoiceId}`, { withCredentials: true });
+      toast.success('Invoice deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete invoice');
+    }
+  };
+
   const handleBookingUpdate = async (bookingId, updates) => {
     try {
       await axios.patch(
@@ -364,35 +388,34 @@ export default function AdminDashboard() {
               </form>
             )}
 
-            <div className="border-2 border-black">
-              <table className="w-full">
-                <thead className="border-b-2 border-black bg-[#F4F4F5]">
-                  <tr>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Invoice ID</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Customer</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Amount</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Due Date</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((invoice) => (
-                    <tr key={invoice.invoice_id} className="border-b border-black" data-testid={`invoice-${invoice.invoice_id}`}>
-                      <td className="p-4 font-mono text-sm">{invoice.invoice_id.slice(-8).toUpperCase()}</td>
-                      <td className="p-4">{invoice.customer_name}</td>
-                      <td className="p-4 font-bold">${invoice.total_amount}</td>
-                      <td className="p-4">{invoice.due_date}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
-                          invoice.status === 'paid' ? 'bg-[#CCFF00]' : 'bg-white'
-                        }`}>
-                          {invoice.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Invoices List - Mobile Responsive */}
+            <div className="space-y-4">
+              {invoices.map((invoice) => (
+                <div key={invoice.invoice_id} className="border-2 border-black p-4 bg-white" data-testid={`invoice-${invoice.invoice_id}`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-mono text-sm font-bold">#{invoice.invoice_id.slice(-8).toUpperCase()}</p>
+                      <p className="font-semibold mt-1">{invoice.customer_name}</p>
+                    </div>
+                    <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
+                      invoice.status === 'paid' ? 'bg-[#CCFF00]' : 'bg-white'
+                    }`}>
+                      {invoice.status}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                    <p><span className="text-[#71717A]">Amount:</span> <span className="font-bold">${invoice.total_amount}</span></p>
+                    <p><span className="text-[#71717A]">Due:</span> {invoice.due_date}</p>
+                  </div>
+                  <button
+                    onClick={() => handleInvoiceDelete(invoice.invoice_id)}
+                    className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
+                    data-testid={`delete-invoice-${invoice.invoice_id}`}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
@@ -473,46 +496,47 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* Bookings */}
+          {/* Bookings - Mobile Responsive */}
           <TabsContent value="bookings" className="mt-6" data-testid="bookings-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               All Bookings
             </h2>
-            <div className="border-2 border-black">
-              <table className="w-full">
-                <thead className="border-b-2 border-black bg-[#F4F4F5]">
-                  <tr>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Booking ID</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Customer</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Date/Time</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Status</th>
-                    <th className="p-4 text-left font-bold uppercase text-sm">Payment</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((booking) => (
-                    <tr key={booking.booking_id} className="border-b border-black" data-testid={`booking-${booking.booking_id}`}>
-                      <td className="p-4 font-mono text-sm">{booking.booking_id.slice(-8).toUpperCase()}</td>
-                      <td className="p-4">{booking.name}</td>
-                      <td className="p-4">{booking.date} {booking.time}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
-                          booking.booking_status === 'completed' ? 'bg-[#CCFF00]' : 'bg-white'
-                        }`}>
-                          {booking.booking_status}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
-                          booking.payment_status === 'paid' ? 'bg-[#CCFF00]' : 'bg-white'
-                        }`}>
-                          {booking.payment_status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-4">
+              {bookings.map((booking) => (
+                <div key={booking.booking_id} className="border-2 border-black p-4 bg-white" data-testid={`booking-${booking.booking_id}`}>
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-mono text-sm font-bold">#{booking.booking_id.slice(-8).toUpperCase()}</p>
+                      <p className="font-semibold mt-1">{booking.name}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`px-2 py-1 text-xs font-bold uppercase border-2 border-black ${
+                        booking.booking_status === 'completed' ? 'bg-[#CCFF00]' : 'bg-white'
+                      }`}>
+                        {booking.booking_status}
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-bold uppercase border-2 border-black ${
+                        booking.payment_status === 'paid' ? 'bg-[#CCFF00]' : 'bg-white'
+                      }`}>
+                        {booking.payment_status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-3">
+                    <p><span className="text-[#71717A]">Date:</span> {booking.date}</p>
+                    <p><span className="text-[#71717A]">Time:</span> {booking.time}</p>
+                    <p><span className="text-[#71717A]">Address:</span> {booking.address}</p>
+                    <p><span className="text-[#71717A]">Amount:</span> <span className="font-bold">${booking.amount}</span></p>
+                  </div>
+                  <button
+                    onClick={() => handleBookingDelete(booking.booking_id)}
+                    className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
+                    data-testid={`delete-booking-${booking.booking_id}`}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
             </div>
           </TabsContent>
 

@@ -450,6 +450,17 @@ async def update_booking(booking_id: str, update_data: dict, request: Request):
     
     return {"message": "Booking updated"}
 
+@api_router.delete("/bookings/{booking_id}")
+async def delete_booking(booking_id: str, request: Request):
+    await require_admin(request)
+    
+    result = await db.bookings.delete_one({"booking_id": booking_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return {"message": "Booking deleted"}
+
 # ==================== QUOTE ENDPOINTS ====================
 
 @api_router.post("/quotes", response_model=Quote)
@@ -561,6 +572,17 @@ async def get_invoices(request: Request):
     await require_admin(request)
     invoices = await db.invoices.find({}, {"_id": 0}).to_list(1000)
     return invoices
+
+@api_router.delete("/invoices/{invoice_id}")
+async def delete_invoice(invoice_id: str, request: Request):
+    await require_admin(request)
+    
+    result = await db.invoices.delete_one({"invoice_id": invoice_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    return {"message": "Invoice deleted"}
 
 # ==================== STAFF ENDPOINTS ====================
 
