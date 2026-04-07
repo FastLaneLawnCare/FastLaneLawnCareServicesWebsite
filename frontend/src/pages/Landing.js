@@ -13,13 +13,22 @@ export default function Landing() {
           <h1 className="text-2xl font-black uppercase tracking-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
             Fast Lane Lawn Care
           </h1>
-          <button
-            data-testid="header-book-now-btn"
-            onClick={() => navigate('/booking')}
-            className="px-6 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition-all duration-150"
-          >
-            Book Now
-          </button>
+          <div className="flex gap-3">
+            <button
+              data-testid="header-login-btn"
+              onClick={() => navigate('/login')}
+              className="px-6 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition-all duration-150"
+            >
+              Login
+            </button>
+            <button
+              data-testid="header-book-now-btn"
+              onClick={() => navigate('/booking')}
+              className="px-6 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition-all duration-150"
+            >
+              Book Now
+            </button>
+          </div>
         </div>
       </header>
 

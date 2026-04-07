@@ -512,6 +512,17 @@ async def update_quote(quote_id: str, update_data: QuoteUpdate, request: Request
     
     return {"message": "Quote updated"}
 
+@api_router.delete("/quotes/{quote_id}")
+async def delete_quote(quote_id: str, request: Request):
+    await require_admin(request)
+    
+    result = await db.quotes.delete_one({"quote_id": quote_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    
+    return {"message": "Quote deleted"}
+
 @api_router.get("/files/{path:path}")
 async def download_file(path: str, authorization: str = Header(None), auth: str = Query(None)):
     try:

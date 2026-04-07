@@ -74,6 +74,18 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleQuoteDelete = async (quoteId) => {
+    if (!window.confirm('Are you sure you want to delete this quote?')) return;
+    
+    try {
+      await axios.delete(`${API}/quotes/${quoteId}`, { withCredentials: true });
+      toast.success('Quote deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete quote');
+    }
+  };
+
   const handleBookingUpdate = async (bookingId, updates) => {
     try {
       await axios.patch(
@@ -392,30 +404,70 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               {quotes.map((quote) => (
                 <div key={quote.quote_id} className="border-2 border-black p-6 bg-white" data-testid={`quote-${quote.quote_id}`}>
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="font-black uppercase text-lg">{quote.name}</h3>
-                      <p className="text-sm text-[#71717A]">{quote.email} • {quote.phone}</p>
+                  <div className="flex gap-6">
+                    {/* Photo Thumbnail */}
+                    {quote.photo_url && (
+                      <div className="flex-shrink-0">
+                        <img
+                          src={`${process.env.REACT_APP_BACKEND_URL}/api/files/${quote.photo_url}`}
+                          alt="Property"
+                          className="w-32 h-32 object-cover border-2 border-black"
+                          data-testid={`quote-photo-${quote.quote_id}`}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Quote Details */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-black uppercase text-lg">{quote.name}</h3>
+                          <p className="text-sm text-[#71717A]">{quote.email} • {quote.phone}</p>
+                        </div>
+                        <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
+                          quote.status === 'pending' ? 'bg-[#CCFF00]' : 
+                          quote.status === 'approved' ? 'bg-green-200' : 'bg-red-100'
+                        }`}>
+                          {quote.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                        <p><span className="font-semibold">Service:</span> {quote.service_type}</p>
+                        <p><span className="font-semibold">Property Size:</span> {quote.property_size}</p>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        {quote.status === 'pending' && (
+                          <>
+                            <button
+                              data-testid={`approve-quote-${quote.quote_id}`}
+                              onClick={() => handleQuoteUpdate(quote.quote_id, 'approved', 'Quote approved')}
+                              className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              data-testid={`decline-quote-${quote.quote_id}`}
+                              onClick={() => handleQuoteUpdate(quote.quote_id, 'declined', 'Quote declined')}
+                              className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-red-100 transition"
+                            >
+                              Decline
+                            </button>
+                          </>
+                        )}
+                        {quote.status === 'declined' && (
+                          <button
+                            data-testid={`delete-quote-${quote.quote_id}`}
+                            onClick={() => handleQuoteDelete(quote.quote_id)}
+                            className="px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
-                      quote.status === 'pending' ? 'bg-[#CCFF00]' : 'bg-white'
-                    }`}>
-                      {quote.status}
-                    </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                    <p><span className="font-semibold">Service:</span> {quote.service_type}</p>
-                    <p><span className="font-semibold">Property Size:</span> {quote.property_size}</p>
-                  </div>
-                  {quote.status === 'pending' && (
-                    <button
-                      data-testid={`approve-quote-${quote.quote_id}`}
-                      onClick={() => handleQuoteUpdate(quote.quote_id, 'approved', 'Quote approved')}
-                      className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
-                    >
-                      Approve Quote
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
