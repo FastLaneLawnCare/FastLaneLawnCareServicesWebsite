@@ -1,3 +1,3 @@
 # Fast Lane Lawn Care Website Source Code
 
-# Hi Chat
+Lightning fast lawn care service
