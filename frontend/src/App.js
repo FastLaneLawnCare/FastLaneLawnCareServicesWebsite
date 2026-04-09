@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from 'sonner';
 import InstallPWA from './components/InstallPWA';
+import { Analytics } from '@vercel/analytics/react';
 
 import Landing from './pages/Landing';
 import Booking from './pages/Booking';
@@ -45,6 +46,7 @@ function App() {
           <Toaster position="top-right" />
         </AuthProvider>
       </BrowserRouter>
+      <Analytics />
     </div>
   );
 }
