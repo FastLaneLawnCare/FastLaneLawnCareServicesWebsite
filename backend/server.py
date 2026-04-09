@@ -18,7 +18,12 @@ import bcrypt
 import jwt
 import requests
 from bson import ObjectId
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+try:
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+except ImportError:
+    logger = logging.getLogger(__name__)
+    logger.warning("emergentintegrations not available - using basic stripe integration")
+    StripeCheckout = None
 from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
 from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest
 import secrets
@@ -28,11 +33,12 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Storage config
-STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
+# Storage config - Emergent integration (optional)
+STORAGE_URL = os.environ.get("STORAGE_URL", "")
+EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 APP_NAME = "fastlane-lawn"
 storage_key = None
+use_storage = bool(STORAGE_URL and EMERGENT_KEY)
 
 # Create the main app
 app = FastAPI()
@@ -218,31 +224,56 @@ async def require_admin(request: Request) -> dict:
 
 def init_storage():
     global storage_key
+    if not use_storage:
+        logger.info("Storage disabled - using local/default storage")
+        return None
     if storage_key:
         return storage_key
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-    resp.raise_for_status()
-    storage_key = resp.json()["storage_key"]
-    return storage_key
+    try:
+        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
+        resp.raise_for_status()
+        storage_key = resp.json()["storage_key"]
+        return storage_key
+    except Exception as e:
+        logger.error(f"Storage init failed: {e}")
+        return None
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    resp = requests.put(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key, "Content-Type": content_type},
-        data=data, timeout=120
-    )
-    resp.raise_for_status()
-    return resp.json()
+    if not use_storage:
+        logger.info(f"Skipping storage for {path} - storage disabled")
+        return {"path": path, "status": "local"}
+    try:
+        key = init_storage()
+        if not key:
+            return {"path": path, "status": "local"}
+        resp = requests.put(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key, "Content-Type": content_type},
+            data=data, timeout=120
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        logger.error(f"Put object failed: {e}")
+        return {"path": path, "status": "local"}
 
 def get_object(path: str) -> tuple:
-    key = init_storage()
-    resp = requests.get(
-        f"{STORAGE_URL}/objects/{path}",
-        headers={"X-Storage-Key": key}, timeout=60
-    )
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+    if not use_storage:
+        logger.info(f"Skipping storage retrieval for {path} - storage disabled")
+        return b"", "application/octet-stream"
+    try:
+        key = init_storage()
+        if not key:
+            return b"", "application/octet-stream"
+        resp = requests.get(
+            f"{STORAGE_URL}/objects/{path}",
+            headers={"X-Storage-Key": key}, timeout=60
+        )
+        resp.raise_for_status()
+        return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+    except Exception as e:
+        logger.error(f"Get object failed: {e}")
+        return b"", "application/octet-stream"
 
 # ==================== AUTH ENDPOINTS ====================
 
@@ -271,8 +302,11 @@ async def register(user_data: UserCreate, response: Response):
     access_token = create_access_token(user_id, email)
     refresh_token = create_refresh_token(user_id)
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=900, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    # Determine secure flag based on environment
+    is_secure = os.environ.get("ENVIRONMENT", "development") == "production"
+    
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=is_secure, samesite="lax", max_age=900, path="/")
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
     
     user_doc.pop("_id", None)
     user_doc.pop("password_hash", None)
@@ -311,8 +345,11 @@ async def login(credentials: UserLogin, response: Response):
     access_token = create_access_token(user["user_id"], email)
     refresh_token = create_refresh_token(user["user_id"])
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, samesite="lax", max_age=900, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
+    # Determine secure flag based on environment
+    is_secure = os.environ.get("ENVIRONMENT", "development") == "production"
+    
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=is_secure, samesite="lax", max_age=900, path="/")
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
     
     user_doc = {k: v for k, v in user.items() if k not in ["_id", "password_hash"]}
     return user_doc
@@ -664,6 +701,9 @@ async def get_analytics(request: Request):
 
 @api_router.post("/payments/stripe/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
+    if not StripeCheckout:
+        raise HTTPException(status_code=503, detail="Stripe integration not available. Please contact support.")
+    
     booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
@@ -673,34 +713,44 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
     cancel_url = f"{host_url}/booking"
     
     stripe_api_key = os.environ.get("STRIPE_API_KEY")
+    if not stripe_api_key:
+        raise HTTPException(status_code=503, detail="Stripe API key not configured")
+    
     webhook_url = f"{host_url}/api/webhook/stripe"
     stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
     
-    checkout_request = CheckoutSessionRequest(
-        amount=float(booking["amount"]),
-        currency="usd",
-        success_url=success_url,
-        cancel_url=cancel_url,
-        metadata={"booking_id": payment_data.booking_id}
-    )
-    
-    session = await stripe_checkout.create_checkout_session(checkout_request)
-    
-    await db.payment_transactions.insert_one({
-        "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
-        "booking_id": payment_data.booking_id,
-        "session_id": session.session_id,
-        "amount": booking["amount"],
-        "currency": "usd",
-        "payment_type": "stripe",
-        "payment_status": "pending",
-        "created_at": datetime.now(timezone.utc).isoformat()
-    })
-    
-    return {"url": session.url, "session_id": session.session_id}
+    try:
+        checkout_request = CheckoutSessionRequest(
+            amount=float(booking["amount"]),
+            currency="usd",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={"booking_id": payment_data.booking_id}
+        )
+        
+        session = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        await db.payment_transactions.insert_one({
+            "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+            "booking_id": payment_data.booking_id,
+            "session_id": session.session_id,
+            "amount": booking["amount"],
+            "currency": "usd",
+            "payment_type": "stripe",
+            "payment_status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {"url": session.url, "session_id": session.session_id}
+    except Exception as e:
+        logger.error(f"Stripe session creation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create payment session: {str(e)}")
 
 @api_router.get("/payments/stripe/status/{session_id}")
 async def get_stripe_status(session_id: str):
+    if not StripeCheckout:
+        raise HTTPException(status_code=503, detail="Stripe integration not available")
+    
     transaction = await db.payment_transactions.find_one({"session_id": session_id})
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
@@ -708,29 +758,36 @@ async def get_stripe_status(session_id: str):
     if transaction.get("payment_status") == "paid":
         return {"status": "complete", "payment_status": "paid"}
     
-    stripe_api_key = os.environ.get("STRIPE_API_KEY")
-    webhook_url = "https://example.com/webhook"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
-    
-    checkout_status = await stripe_checkout.get_checkout_status(session_id)
-    
-    if checkout_status.payment_status == "paid":
-        await db.payment_transactions.update_one(
-            {"session_id": session_id},
-            {"$set": {"payment_status": "paid", "status": "complete"}}
-        )
+    try:
+        stripe_api_key = os.environ.get("STRIPE_API_KEY")
+        if not stripe_api_key:
+            raise Exception("Stripe API key not configured")
         
-        booking_id = transaction["booking_id"]
-        await db.bookings.update_one(
-            {"booking_id": booking_id},
-            {"$set": {"payment_status": "paid"}}
-        )
-    
-    return {
-        "status": checkout_status.status,
-        "payment_status": checkout_status.payment_status,
-        "amount": checkout_status.amount_total / 100
-    }
+        webhook_url = "https://example.com/webhook"
+        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
+        
+        checkout_status = await stripe_checkout.get_checkout_status(session_id)
+        
+        if checkout_status.payment_status == "paid":
+            await db.payment_transactions.update_one(
+                {"session_id": session_id},
+                {"$set": {"payment_status": "paid", "status": "complete"}}
+            )
+            
+            booking_id = transaction["booking_id"]
+            await db.bookings.update_one(
+                {"booking_id": booking_id},
+                {"$set": {"payment_status": "paid"}}
+            )
+        
+        return {
+            "status": checkout_status.status,
+            "payment_status": checkout_status.payment_status,
+            "amount": checkout_status.amount_total / 100
+        }
+    except Exception as e:
+        logger.error(f"Stripe status check failed: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check payment status")
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
@@ -882,11 +939,15 @@ async def get_paypal_status(order_id: str):
 
 @app.on_event("startup")
 async def startup():
-    try:
-        init_storage()
-        logger.info("Storage initialized")
-    except Exception as e:
-        logger.error(f"Storage init failed: {e}")
+    # Initialize storage only if configured
+    if use_storage:
+        try:
+            init_storage()
+            logger.info("Storage initialized")
+        except Exception as e:
+            logger.warning(f"Storage initialization failed: {e} - continuing without storage")
+    else:
+        logger.info("Storage not configured - skipping initialization")
     
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")
@@ -934,15 +995,19 @@ async def startup():
 - POST /api/auth/google/session
 """)
 
-app.include_router(api_router)
+# Configure CORS - must be added before including router in production
+cors_origins = os.environ.get("FRONTEND_URL", "http://localhost:3000").split(",")
+cors_origins = [origin.strip() for origin in cors_origins]
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=[os.environ.get("FRONTEND_URL", "http://localhost:3000")],
+    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
