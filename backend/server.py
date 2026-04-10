@@ -18,12 +18,7 @@ import bcrypt
 import jwt
 import requests
 from bson import ObjectId
-try:
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
-except ImportError:
-    logger = logging.getLogger(__name__)
-    logger.warning("emergentintegrations not available - using basic stripe integration")
-    StripeCheckout = None
+StripeCheckout = None
 from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
 from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest
 import secrets
