@@ -16,6 +16,8 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
+import boto3
+from botocore.client import Config
 import requests
 from bson import ObjectId
 try:
@@ -33,12 +35,15 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Storage config - Emergent integration (optional)
-STORAGE_URL = os.environ.get("STORAGE_URL", "")
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
+# Storage config - Railway S3 bucket
+S3_BUCKET = os.environ.get("BUCKET", "")
+S3_REGION = os.environ.get("REGION", "")
+S3_ENDPOINT = os.environ.get("ENDPOINT", "")
+S3_ACCESS_KEY_ID = os.environ.get("ACCESS_KEY_ID", "")
+S3_SECRET_ACCESS_KEY = os.environ.get("SECRET_ACCESS_KEY", "")
 APP_NAME = "fastlane-lawn"
-storage_key = None
-use_storage = bool(STORAGE_URL and EMERGENT_KEY)
+use_storage = bool(S3_BUCKET and S3_ENDPOINT and S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY)
+_s3_client = None
 
 # Create the main app
 app = FastAPI()
@@ -223,17 +228,23 @@ async def require_admin(request: Request) -> dict:
 # ==================== STORAGE HELPERS ====================
 
 def init_storage():
-    global storage_key
+    global _s3_client
     if not use_storage:
-        logger.info("Storage disabled - using local/default storage")
+        logger.info("Storage disabled - S3 bucket credentials not configured")
         return None
-    if storage_key:
-        return storage_key
+    if _s3_client:
+        return _s3_client
     try:
-        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-        resp.raise_for_status()
-        storage_key = resp.json()["storage_key"]
-        return storage_key
+        _s3_client = boto3.client(
+            "s3",
+            region_name=S3_REGION or None,
+            endpoint_url=S3_ENDPOINT or None,
+            aws_access_key_id=S3_ACCESS_KEY_ID,
+            aws_secret_access_key=S3_SECRET_ACCESS_KEY,
+            config=Config(signature_version="s3v4"),
+        )
+        logger.info("S3 client initialised (Railway bucket)")
+        return _s3_client
     except Exception as e:
         logger.error(f"Storage init failed: {e}")
         return None
@@ -243,16 +254,19 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
         logger.info(f"Skipping storage for {path} - storage disabled")
         return {"path": path, "status": "local"}
     try:
-        key = init_storage()
-        if not key:
+        client = init_storage()
+        if not client:
             return {"path": path, "status": "local"}
-        resp = requests.put(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key, "Content-Type": content_type},
-            data=data, timeout=120
+        client.put_object(
+            Bucket=S3_BUCKET,
+            Key=path,
+            Body=data,
+            ContentType=content_type,
         )
-        resp.raise_for_status()
-        return resp.json()
+        # Build a public URL using the endpoint + bucket + key
+        endpoint = S3_ENDPOINT.rstrip("/")
+        url = f"{endpoint}/{S3_BUCKET}/{path}"
+        return {"path": path, "url": url, "status": "ok"}
     except Exception as e:
         logger.error(f"Put object failed: {e}")
         return {"path": path, "status": "local"}
@@ -262,15 +276,13 @@ def get_object(path: str) -> tuple:
         logger.info(f"Skipping storage retrieval for {path} - storage disabled")
         return b"", "application/octet-stream"
     try:
-        key = init_storage()
-        if not key:
+        client = init_storage()
+        if not client:
             return b"", "application/octet-stream"
-        resp = requests.get(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key}, timeout=60
-        )
-        resp.raise_for_status()
-        return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+        response = client.get_object(Bucket=S3_BUCKET, Key=path)
+        data = response["Body"].read()
+        content_type = response.get("ContentType", "application/octet-stream")
+        return data, content_type
     except Exception as e:
         logger.error(f"Get object failed: {e}")
         return b"", "application/octet-stream"
@@ -532,13 +544,17 @@ async def upload_quote_photo(quote_id: str, file: UploadFile = File(...)):
     data = await file.read()
     
     result = put_object(path, data, file.content_type or "image/jpeg")
-    
+
+    # Prefer the full public URL when available (S3 upload succeeded),
+    # otherwise fall back to the object key path.
+    photo_url = result.get("url") or result["path"]
+
     await db.quotes.update_one(
         {"quote_id": quote_id},
-        {"$set": {"photo_url": result["path"]}}
+        {"$set": {"photo_url": photo_url}}
     )
-    
-    return {"photo_url": result["path"]}
+
+    return {"photo_url": photo_url}
 
 @api_router.get("/quotes", response_model=List[Quote])
 async def get_quotes(request: Request):
