@@ -36,16 +36,15 @@ db = client[os.environ['DB_NAME']]
 # Storage config - Emergent integration (optional)
 STORAGE_URL = os.environ.get("STORAGE_URL", "")
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-APP_NAME = "fastlane-lawn"
+APP_NAME = os.environ.get("APP_NAME", "fastlane-lawn")
 storage_key = None
-use_storage = False
-# use_storage = bool(STORAGE_URL and EMERGENT_KEY)
+use_storage = bool(STORAGE_URL and EMERGENT_KEY)
 
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
-JWT_ALGORITHM = "HS256"
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -82,7 +81,7 @@ class BookingCreate(BaseModel):
     phone: str
     email: str
     payment_method: str
-    amount: float = 50.0
+    amount: float = float(os.environ.get("DEFAULT_SERVICE_PRICE", "50.0"))
 
 class Booking(BaseModel):
     booking_id: str
@@ -370,8 +369,9 @@ async def logout(response: Response):
 @api_router.post("/auth/google/session")
 async def google_session(session_data: GoogleSessionRequest, response: Response):
     try:
+        google_auth_url = os.environ.get("GOOGLE_AUTH_URL", "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data")
         resp = requests.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            google_auth_url,
             headers={"X-Session-ID": session_data.session_id},
             timeout=10
         )
@@ -764,7 +764,7 @@ async def get_stripe_status(session_id: str):
         if not stripe_api_key:
             raise Exception("Stripe API key not configured")
         
-        webhook_url = "https://example.com/webhook"
+        webhook_url = os.environ.get("STRIPE_WEBHOOK_URL", "https://example.com/webhook")
         stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
         
         checkout_status = await stripe_checkout.get_checkout_status(session_id)
@@ -808,7 +808,14 @@ async def create_paypal_order(payment_data: PaymentSessionCreate, http_request: 
     # Initialize PayPal client
     paypal_client_id = os.environ.get("PAYPAL_CLIENT_ID", "test")
     paypal_secret = os.environ.get("PAYPAL_SECRET", "test")
-    environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    paypal_env = os.environ.get("PAYPAL_ENVIRONMENT", "sandbox")
+    
+    if paypal_env.lower() == "live":
+        from paypalcheckoutsdk.core import LiveEnvironment
+        environment = LiveEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    else:
+        environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    
     paypal_client = PayPalHttpClient(environment)
     
     # Create PayPal order
@@ -824,7 +831,7 @@ async def create_paypal_order(payment_data: PaymentSessionCreate, http_request: 
         "application_context": {
             "return_url": return_url,
             "cancel_url": cancel_url,
-            "brand_name": "Fast Lane Lawn Care",
+            "brand_name": os.environ.get("BRAND_NAME", "Fast Lane Lawn Care"),
             "user_action": "PAY_NOW"
         },
         "purchase_units": [{
@@ -882,7 +889,14 @@ async def capture_paypal_order(order_id: str):
     # Initialize PayPal client
     paypal_client_id = os.environ.get("PAYPAL_CLIENT_ID", "test")
     paypal_secret = os.environ.get("PAYPAL_SECRET", "test")
-    environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    paypal_env = os.environ.get("PAYPAL_ENVIRONMENT", "sandbox")
+    
+    if paypal_env.lower() == "live":
+        from paypalcheckoutsdk.core import LiveEnvironment
+        environment = LiveEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    else:
+        environment = SandboxEnvironment(client_id=paypal_client_id, client_secret=paypal_secret)
+    
     paypal_client = PayPalHttpClient(environment)
     
     # Capture order

@@ -18,7 +18,7 @@ export default function Booking() {
   const navigate = useNavigate();
   const [stage, setStage] = useState(0); // Start at 0 for service selection
   const [selectedService, setSelectedService] = useState('');
-  const [servicePrice, setServicePrice] = useState(50.0);
+  const [servicePrice, setServicePrice] = useState(parseFloat(process.env.REACT_APP_DEFAULT_SERVICE_PRICE || '50.0'));
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [details, setDetails] = useState({
