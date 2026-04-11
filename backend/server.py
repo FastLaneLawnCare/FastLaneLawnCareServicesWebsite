@@ -38,7 +38,8 @@ STORAGE_URL = os.environ.get("STORAGE_URL", "")
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
 APP_NAME = "fastlane-lawn"
 storage_key = None
-use_storage = bool(STORAGE_URL and EMERGENT_KEY)
+use_storage = False
+# use_storage = bool(STORAGE_URL and EMERGENT_KEY)
 
 # Create the main app
 app = FastAPI()
