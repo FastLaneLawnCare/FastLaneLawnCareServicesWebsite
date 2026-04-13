@@ -35,6 +35,7 @@ export default function Booking() {
   const [servicePrice, setServicePrice] = useState(parseFloat(process.env.REACT_APP_DEFAULT_SERVICE_PRICE || '50.0'));
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
   const [details, setDetails] = useState({
     firstName: '',
     lastName: '',
@@ -84,6 +85,34 @@ export default function Booking() {
       zipCode: current.zipCode || user.zip_code || ''
     }));
   }, [user]);
+
+  useEffect(() => {
+    const fetchOccupiedSlots = async () => {
+      if (!selectedDate) {
+        setOccupiedSlots([]);
+        return;
+      }
+
+      try {
+        const selectedDateValue = format(selectedDate, 'yyyy-MM-dd');
+        const { data } = await axios.get(`${API}/bookings/occupied-slots`, {
+          params: { date: selectedDateValue }
+        });
+        const occupiedTimes = data?.occupied_times || [];
+        setOccupiedSlots(occupiedTimes);
+
+        if (selectedTime && occupiedTimes.includes(selectedTime)) {
+          setSelectedTime('');
+          toast.error('That time slot is now occupied. Please choose another time.');
+        }
+      } catch (error) {
+        console.error('Failed to fetch occupied slots:', error);
+        setOccupiedSlots([]);
+      }
+    };
+
+    fetchOccupiedSlots();
+  }, [selectedDate, selectedTime]);
 
   const serviceAddressForMap = `${details.houseNumber} ${details.streetName}${details.aptNumber ? ` ${details.aptNumber}` : ''}, ${details.city}, IL ${details.zipCode}`.trim();
   const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(serviceAddressForMap)}&output=embed`;
@@ -389,18 +418,29 @@ export default function Booking() {
             <p className="text-lg text-[#71717A] mb-8">Choose a time between 11 AM and 5 PM</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {TIME_SLOTS.map((time) => (
+                (() => {
+                  const isOccupied = occupiedSlots.includes(time);
+                  return (
                 <button
                   key={time}
                   data-testid={`time-slot-${time}`}
-                  onClick={() => setSelectedTime(time)}
+                  onClick={() => {
+                    if (isOccupied) return;
+                    setSelectedTime(time);
+                  }}
+                  disabled={isOccupied}
                   className={`py-4 px-6 border-2 border-black font-bold uppercase text-sm transition-all duration-150 ${
-                    selectedTime === time
+                    isOccupied
+                      ? 'bg-[#E4E4E7] text-[#71717A] cursor-not-allowed'
+                      : selectedTime === time
                       ? 'bg-[#CCFF00] text-black'
                       : 'bg-white text-black hover:bg-[#E4E4E7]'
                   }`}
                 >
-                  {time}
+                  {isOccupied ? 'OCCUPIED' : time}
                 </button>
+                  );
+                })()
               ))}
             </div>
             <button

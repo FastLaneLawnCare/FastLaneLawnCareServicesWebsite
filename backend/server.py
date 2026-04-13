@@ -614,6 +614,24 @@ async def get_bookings(request: Request):
     
     return bookings
 
+@api_router.get("/bookings/occupied-slots")
+async def get_occupied_slots(date: str = Query(...)):
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    occupied_bookings = await db.bookings.find(
+        {
+            "date": date,
+            "booking_status": {"$ne": "cancelled"}
+        },
+        {"_id": 0, "time": 1}
+    ).to_list(1000)
+
+    occupied_times = sorted({booking.get("time") for booking in occupied_bookings if booking.get("time")})
+    return {"date": date, "occupied_times": occupied_times}
+
 @api_router.get("/bookings/{booking_id}", response_model=Booking)
 async def get_booking(booking_id: str):
     booking = await db.bookings.find_one({"booking_id": booking_id}, {"_id": 0})
