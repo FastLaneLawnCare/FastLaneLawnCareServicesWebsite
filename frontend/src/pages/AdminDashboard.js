@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const role = (user?.role || '').toLowerCase();
   const isCEO = role === 'ceo';
   const isManager = role === 'manager';
-  const isStaff = role === 'staff';
+  const isStaff = role === 'staff' || role === 'crew' || role === 'crew_manager';
   const canViewAdminData = isCEO || isManager;
   const [analytics, setAnalytics] = useState(null);
   const [quotes, setQuotes] = useState([]);
@@ -48,7 +48,7 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || !['ceo', 'manager', 'staff'].includes((user.role || '').toLowerCase()))) {
+    if (!authLoading && (!user || !['ceo', 'manager', 'crew_manager', 'crew', 'staff'].includes((user.role || '').toLowerCase()))) {
       navigate('/login');
       return;
     }
@@ -185,7 +185,7 @@ export default function AdminDashboard() {
         staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: member.hourly_rate || 0 }), {})
       );
       setRoleDrafts(
-        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: (member.role || 'staff').toLowerCase() }), {})
+        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: (member.role || 'crew').toLowerCase() }), {})
       );
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
           <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
-                Staff Dashboard
+                {role === 'crew_manager' ? 'Crew Manager Dashboard' : 'Crew Dashboard'}
               </h1>
               <p className="text-sm text-[#71717A]">Your performance and earnings summary.</p>
             </div>
@@ -903,14 +903,14 @@ export default function AdminDashboard() {
                         step="0.01"
                         value={hourlyRateDrafts[member.user_id] ?? 0}
                         onChange={(e) => setHourlyRateDrafts((current) => ({ ...current, [member.user_id]: e.target.value }))}
-                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        disabled={!['staff', 'crew', 'crew_manager'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
                         className="w-full h-12 px-4 border-2 border-black"
                       />
                     </div>
                     <div className="flex items-end">
                       <button
                         onClick={() => handleHourlyRateUpdate(member)}
-                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        disabled={!['staff', 'crew', 'crew_manager'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
                         className="w-full h-12 px-4 bg-[#CCFF00] border-2 border-black font-bold uppercase disabled:opacity-50"
                       >
                         Save Pay Rate
@@ -925,7 +925,8 @@ export default function AdminDashboard() {
                           disabled={!isCEO || (member.role || '').toLowerCase() === 'ceo'}
                           className="w-full h-12 px-3 border-2 border-black bg-white uppercase"
                         >
-                          <option value="staff">Staff</option>
+                          <option value="crew">Crew</option>
+                          <option value="crew_manager">Crew Manager</option>
                           <option value="manager">Manager</option>
                         </select>
                         <button

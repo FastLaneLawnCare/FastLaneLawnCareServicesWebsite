@@ -103,9 +103,11 @@ JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 MIN_BOOKING_DAYS_AHEAD = 2
 ROLE_HIERARCHY = {
     "customer": 0,
-    "staff": 1,
-    "manager": 2,
-    "ceo": 3
+    "staff": 1,          # legacy alias for crew
+    "crew": 1,
+    "crew_manager": 2,
+    "manager": 3,
+    "ceo": 4
 }
 
 # Configure logging
@@ -868,7 +870,7 @@ async def delete_invoice(invoice_id: str, request: Request):
 @api_router.get("/staff")
 async def get_staff(request: Request):
     await require_role_at_least(request, "manager")
-    staff = await db.users.find({"role": {"$in": ["ceo", "manager", "staff"]}}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    staff = await db.users.find({"role": {"$in": ["ceo", "manager", "crew_manager", "crew", "staff"]}}, {"_id": 0, "password_hash": 0}).to_list(1000)
     
     staff_with_metrics = []
     for s in staff:
@@ -924,7 +926,7 @@ async def log_staff_work(work_data: StaffUpdate, request: Request):
 @api_router.get("/staff/me")
 async def get_my_staff_metrics(request: Request):
     user = await require_role_at_least(request, "staff")
-    if normalize_role(user.get("role")) not in {"staff", "manager", "ceo"}:
+    if normalize_role(user.get("role")) not in {"staff", "crew", "crew_manager", "manager", "ceo"}:
         raise HTTPException(status_code=403, detail="Staff access required")
 
     bookings = await db.bookings.find({"staff_id": user["user_id"]}).to_list(1000)
@@ -960,8 +962,8 @@ async def update_staff_hourly_rate(staff_user_id: str, pay_data: StaffPayUpdate,
         raise HTTPException(status_code=404, detail="Staff user not found")
 
     target_role = normalize_role(target_user.get("role"))
-    if target_role != "staff":
-        raise HTTPException(status_code=403, detail="Hourly rate can only be updated for staff")
+    if target_role not in {"staff", "crew", "crew_manager"}:
+        raise HTTPException(status_code=403, detail="Hourly rate can only be updated for crew")
 
     await db.users.update_one(
         {"user_id": staff_user_id},
@@ -973,8 +975,8 @@ async def update_staff_hourly_rate(staff_user_id: str, pay_data: StaffPayUpdate,
 async def update_staff_role(staff_user_id: str, role_data: StaffRoleUpdate, request: Request):
     await require_ceo(request)
     target_role = normalize_role(role_data.role)
-    if target_role not in {"manager", "staff"}:
-        raise HTTPException(status_code=400, detail="Role must be manager or staff")
+    if target_role not in {"manager", "crew_manager", "crew"}:
+        raise HTTPException(status_code=400, detail="Role must be manager, crew_manager, or crew")
 
     target_user = await db.users.find_one({"user_id": staff_user_id})
     if not target_user:
