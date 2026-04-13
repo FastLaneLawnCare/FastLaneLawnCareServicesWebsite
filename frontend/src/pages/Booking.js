@@ -21,6 +21,9 @@ export default function Booking() {
   const [servicePrice, setServicePrice] = useState(parseFloat(process.env.REACT_APP_DEFAULT_SERVICE_PRICE || '50.0'));
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
+  const express = require('express');
+  const cors = require('cors');
+  const app = express();
   const [details, setDetails] = useState({
     firstName: '',
     lastName: '',
@@ -37,6 +40,8 @@ export default function Booking() {
   const [mapUrl, setMapUrl] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  app.use(cors({ origin: 'https://fastlanelawn.com' }));
 
   const services = [
     { id: 'lawn_mowing', name: 'Lawn Mowing', description: 'Includes: Lawn Mowing, Edge Trimming, and Debris Removal', price: 30 },
