@@ -132,10 +132,8 @@ export default function Booking() {
       } 
       
       else if (paymentMethod === 'stripe') {
-  try {
-    const { data: sessionData } = await axios.post(
-      `${API}/payments/stripe/create-session`,
-      {
+  try {const { data: sessionData } = await axios.post(
+      `${API}/payments/stripe/create-session`, {
         booking_id: data.booking_id,
         payment_type: 'stripe'
       }

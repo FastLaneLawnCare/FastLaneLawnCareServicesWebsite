@@ -56,6 +56,7 @@ auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
 stripe_router = APIRouter(prefix="/stripe")
 paypal_router = APIRouter(prefix="/paypal")
+bookings_router = APIRouter(prefix="/bookings")
 
 # Attach payment sub-routers
 payments_router.include_router(stripe_router)
@@ -64,6 +65,7 @@ payments_router.include_router(paypal_router)
 # Attach main feature routers
 api_router.include_router(auth_router)
 api_router.include_router(payments_router)
+api_router.include_router(bookings_router)
 
 # Attach everything to app
 app.include_router(api_router)
