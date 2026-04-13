@@ -135,70 +135,7 @@ if not stripe_api_key:
 
 **Why**: Prevents confusing crash errors and gives clear API response instead.
 
----
-
-## Next Steps to Fix Signup, Bookings, and Quotes
-
-### 1. **Set Environment Variables**
-
-You MUST set these for the app to work:
-
-**Backend (.env or Vercel environment settings)**:
-```
-MONGO_URL=your_mongodb_connection_string
-DB_NAME=fastlanelawn
-JWT_SECRET=your_secret_key_here
-FRONTEND_URL=https://your-vercel-domain.vercel.app
-ENVIRONMENT=production
-```
-
-**Frontend (.env.local or Vercel environment settings)**:
-```
-REACT_APP_BACKEND_URL=https://your-vercel-domain.vercel.app
-```
-
-### 2. **Verify MongoDB Connection**
-The app won't work without MongoDB. Test:
-```bash
-# Test MongoDB connection string
-mongosh "your_mongo_url"
-```
-
-### 3. **Test Locally First**
-
-Before deploying to Vercel, test locally:
-
-```bash
-# Terminal 1: Start backend
-cd backend
-pip install -r requirements.txt
-# Set env vars in .env file
-python -m uvicorn server:app --reload
-
-# Terminal 2: Start frontend  
-cd frontend
-npm install
-npm start
-```
-
-Then test:
-- Go to http://localhost:3000/login - try to signup
-- Check browser console for errors
-- Check backend terminal for error logs
-
-### 4. **Deploy to Vercel**
-
-Once working locally:
-```bash
-vercel deploy --prod
-```
-
-Make sure Vercel environment variables are set in project settings.
-
----
-
 ## Debugging Checklist
-
 Use this if things still don't work:
 
 ### Signup/Login Not Working?
@@ -228,7 +165,6 @@ Use this if things still don't work:
 - [ ] Did you set `ENVIRONMENT=production` for Vercel deployment?
 - [ ] Check browser DevTools → Application → Cookies
 - [ ] Cookies must have secure=true flag in HTTPS
-
 ---
 
 ## Key Environment Variables Reference
@@ -245,7 +181,6 @@ Use this if things still don't work:
 | `PAYPAL_CLIENT_ID` | Backend | PayPal (optional) | `xxxx` |
 | `ADMIN_EMAIL` | Backend | Initial admin account | `admin@fastlanelawn.com` |
 | `ADMIN_PASSWORD` | Backend | Initial admin password | `secure_password` |
-
 ---
 
 ## Files Changed
