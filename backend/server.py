@@ -17,6 +17,17 @@ from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
 import requests
+
+# Stripe
+import stripe
+from stripe import StripeCheckout, CheckoutSessionRequest
+
+# PayPal (your existing)
+from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
+from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
+from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest
+
+import secrets
 from bson import ObjectId
 import secrets
 
@@ -44,6 +55,8 @@ app.add_middleware(
 api_router = APIRouter(prefix="/api")
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
+stripe_router = APIRouter(prefix="/stripe")
+paypal_router = APIRouter(prefix="/paypal")
 
 # define routes here...
 @api_router.get("/test")
@@ -72,7 +85,28 @@ async def stripetest():
 
 @payments_router.get("/paypaltest")
 async def paypaltest():
-    return {"message": "PayPal API is Online ✅"} 
+    return {"message": "PayPal API is Online ✅"}
+
+@stripe_router.get("/startStripeTest")
+async def startStripeTest():
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        mode="payment",
+        line_items=[{
+            "price_data": {
+                "currency": "usd",
+                "product_data": {
+                    "name": "Test Service",
+                },
+                "unit_amount": 5000,  # $50.00
+            },
+            "quantity": 1,
+        }],
+        success_url="https://fastlanelawn.com/success",
+        cancel_url="https://fastlanelawn.com/cancel",
+    )
+
+    return {"id": session.id}
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
@@ -614,7 +648,7 @@ async def get_analytics(request: Request):
 
 # ==================== PAYMENT ENDPOINTS ====================
 
-@payments_router.post("/stripe/create-session")
+@stripe_router.post("/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     if not StripeCheckout:
         raise HTTPException(status_code=503, detail="Stripe integration not available. Please contact support.")
@@ -917,6 +951,7 @@ async def startup():
 
 # ✅ THEN include router
 api_router.include_router(auth_router)
+payments_router.include_router(stripe_router)
 api_router.include_router(payments_router)
 app.include_router(api_router)
 
