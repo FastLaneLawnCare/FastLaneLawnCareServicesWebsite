@@ -664,6 +664,7 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
 
     if not stripe_api_key:
         raise HTTPException(status_code=503, detail="Stripe API key not configured")
+
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
