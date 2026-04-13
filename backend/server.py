@@ -46,7 +46,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://fastlanelawn.com",
-        "https://www.fastlanelawn.com"
+        "https://www.fastlanelawn.com",
+        "https://api.fastlanelawn.com",
+        "https://api.fastlanelawn.com/api/auth/me",
+        "https://api.fastlanelawn.com/api/payments/stripe/create-session"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -54,7 +57,7 @@ app.add_middleware(
 )
 
 # ✅ 2. DEFINE ROUTERS
-api_router = APIRouter(prefix="/api")
+api_router = APIRouter(prefix="/api")""
 
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
