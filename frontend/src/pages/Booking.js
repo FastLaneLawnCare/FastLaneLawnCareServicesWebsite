@@ -11,6 +11,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BOOKING_STAGES = ['Service', 'Date', 'Time', 'Details', 'Payment'];
 const FIRST_STAGE_INDEX = 0;
 const LAST_STAGE_INDEX = BOOKING_STAGES.length - 1;
+const MIN_BOOKING_DAYS_AHEAD = 2;
 
 const TIME_SLOTS = [
   '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
@@ -51,6 +52,9 @@ export default function Booking() {
     { id: 'snow_removal', name: 'Snow Removal', description: 'Professional snow removal service', price: 30, note: 'Starting at' }
   ];
   const isFirstStage = stage === FIRST_STAGE_INDEX;
+  const minimumBookingDate = new Date();
+  minimumBookingDate.setHours(0, 0, 0, 0);
+  minimumBookingDate.setDate(minimumBookingDate.getDate() + MIN_BOOKING_DAYS_AHEAD);
 
   useEffect(() => {
     if (!user) return;
@@ -85,6 +89,14 @@ export default function Booking() {
     if (stage === 1 && !selectedDate) {
       toast.error('Please select a date');
       return;
+    }
+    if (stage === 1 && selectedDate) {
+      const normalizedSelectedDate = new Date(selectedDate);
+      normalizedSelectedDate.setHours(0, 0, 0, 0);
+      if (normalizedSelectedDate < minimumBookingDate) {
+        toast.error(`Please select a date at least ${MIN_BOOKING_DAYS_AHEAD} days in advance`);
+        return;
+      }
     }
     if (stage === 2 && !selectedTime) {
       toast.error('Please select a time');
@@ -308,7 +320,11 @@ export default function Booking() {
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date()}
+                  disabled={(date) => {
+                    const currentDate = new Date(date);
+                    currentDate.setHours(0, 0, 0, 0);
+                    return currentDate < minimumBookingDate;
+                  }}
                   className="w-full scale-90 sm:scale-100"
                   classNames={{
                     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
@@ -328,6 +344,9 @@ export default function Booking() {
                     day_disabled: "text-[#71717A] opacity-50"
                   }}
                 />
+                <p className="mt-4 text-sm font-semibold uppercase text-[#71717A]">
+                  Bookings must be made at least {MIN_BOOKING_DAYS_AHEAD} days in advance.
+                </p>
               </div>
             </div>
             <button

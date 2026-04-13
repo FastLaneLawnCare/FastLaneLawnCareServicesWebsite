@@ -100,6 +100,7 @@ async def get_me(request: Request):
     return user
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
+MIN_BOOKING_DAYS_AHEAD = 2
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -537,6 +538,18 @@ async def logout(response: Response):
 
 @api_router.post("/bookings", response_model=Booking)
 async def create_booking(booking_data: BookingCreate, request: Request):
+    try:
+        requested_booking_date = datetime.strptime(booking_data.date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid booking date format")
+
+    minimum_allowed_booking_date = datetime.now(timezone.utc).date() + timedelta(days=MIN_BOOKING_DAYS_AHEAD)
+    if requested_booking_date < minimum_allowed_booking_date:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Bookings must be made at least {MIN_BOOKING_DAYS_AHEAD} days in advance"
+        )
+
     try:
         user = await get_current_user(request)
         user_id = user.get("user_id")
