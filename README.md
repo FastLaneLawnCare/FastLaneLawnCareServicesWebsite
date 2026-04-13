@@ -5,7 +5,7 @@
 - Test
 
 # Vercel Migration - Environment Variables Guide
-After migrating from Emergent to Vercel, you must configure these environment variables for the application to work properly.
+After migrating to Vercel, you must configure these environment variables for the application to work properly.
 
 ## Frontend Environment Variables
 Create a `.env.local` file in the `frontend/` directory or set these in Vercel project settings:
@@ -52,10 +52,7 @@ PAYPAL_SECRET=xxxx
 ADMIN_EMAIL=admin@fastlanelawn.com
 ADMIN_PASSWORD=your-secure-password
 
-# Emergent Storage (if still using)
-STORAGE_URL=https://integrations.emergentagent.com/objstore/api/v1/storage
-EMERGENT_LLM_KEY=your-emergent-key
-# If these are not set, storage features will be disabled gracefully
+# Storage features removed - using local storage only
 ```
 
 ## Vercel Deployment Configuration
@@ -150,15 +147,11 @@ curl -X POST http://localhost:8000/api/quotes \
   - Check that IP whitelist includes Vercel's IP ranges (allow all: 0.0.0.0/0)
   - Test connection string locally first
 
-### Emergent/Storage Integration Failing
-- **Problem**: Storage-related errors on startup
-- **Solution**: These are now non-fatal. The app will log a warning and continue without storage features. Only set `EMERGENT_LLM_KEY` and `STORAGE_URL` if you're still using Emergent.
-
-## Key Differences from Emergent Hosting
+## Key Differences from Previous Hosting
 1. **API Endpoint**: Previously `/_/backend`, now `/api`
 2. **Domain**: Update all hardcoded URLs to your Vercel domain
-3. **CORS**: Now controlled by `FRONTEND_URL` variable instead of Emergent configuration
-4. **Storage**: Emergent storage is now optional and won't crash the app if unavailable
+3. **CORS**: Now controlled by `FRONTEND_URL` variable instead of previous configuration
+4. **Storage**: Storage features removed - using local storage only
 5. **Cookies**: Security settings now adjust based on `ENVIRONMENT` variable
 
 ## Migration Checklist

@@ -18,27 +18,12 @@ import bcrypt
 import jwt
 import requests
 from bson import ObjectId
-try:
-    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
-except ImportError:
-    logger = logging.getLogger(__name__)
-    logger.warning("emergentintegrations not available - using basic stripe integration")
-    StripeCheckout = None
-from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
-from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest
 import secrets
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
-
-# Storage config - Emergent integration (optional)
-STORAGE_URL = ""
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-APP_NAME = "fastlane-lawn"
-storage_key = None
-use_storage = False
 
 # Create the main app
 app = FastAPI()
@@ -70,8 +55,7 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-class GoogleSessionRequest(BaseModel):
-    session_id: str
+# Google auth models removed
 
 class BookingCreate(BaseModel):
     date: str
@@ -222,58 +206,15 @@ async def require_admin(request: Request) -> dict:
 
 # ==================== STORAGE HELPERS ====================
 
-def init_storage():
-    global storage_key
-    if not use_storage:
-        logger.info("Storage disabled - using local/default storage")
-        return None
-    if storage_key:
-        return storage_key
-    try:
-        resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-        resp.raise_for_status()
-        storage_key = resp.json()["storage_key"]
-        return storage_key
-    except Exception as e:
-        logger.error(f"Storage init failed: {e}")
-        return None
+# Storage functionality removed - using local storage only
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
-    if not use_storage:
-        logger.info(f"Skipping storage for {path} - storage disabled")
-        return {"path": path, "status": "local"}
-    try:
-        key = init_storage()
-        if not key:
-            return {"path": path, "status": "local"}
-        resp = requests.put(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key, "Content-Type": content_type},
-            data=data, timeout=120
-        )
-        resp.raise_for_status()
-        return resp.json()
-    except Exception as e:
-        logger.error(f"Put object failed: {e}")
-        return {"path": path, "status": "local"}
+    # Local storage only
+    return {"path": path, "status": "local"}
 
 def get_object(path: str) -> tuple:
-    if not use_storage:
-        logger.info(f"Skipping storage retrieval for {path} - storage disabled")
-        return b"", "application/octet-stream"
-    try:
-        key = init_storage()
-        if not key:
-            return b"", "application/octet-stream"
-        resp = requests.get(
-            f"{STORAGE_URL}/objects/{path}",
-            headers={"X-Storage-Key": key}, timeout=60
-        )
-        resp.raise_for_status()
-        return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
-    except Exception as e:
-        logger.error(f"Get object failed: {e}")
-        return b"", "application/octet-stream"
+    # Local storage only
+    return b"", "application/octet-stream"
 
 # ==================== AUTH ENDPOINTS ====================
 
@@ -366,62 +307,7 @@ async def logout(response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
-@api_router.post("/auth/google/session")
-async def google_session(session_data: GoogleSessionRequest, response: Response):
-    try:
-        google_auth_url = os.environ.get("GOOGLE_AUTH_URL", "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data")
-        resp = requests.get(
-            google_auth_url,
-            headers={"X-Session-ID": session_data.session_id},
-            timeout=10
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        
-        email = data["email"].lower()
-        user = await db.users.find_one({"email": email})
-        
-        if not user:
-            user_id = f"user_{uuid.uuid4().hex[:12]}"
-            user_doc = {
-                "user_id": user_id,
-                "email": email,
-                "name": data.get("name", ""),
-                "picture": data.get("picture", ""),
-                "role": "customer",
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.users.insert_one(user_doc)
-            user = user_doc
-        else:
-            user_id = user["user_id"]
-        
-        session_token = data["session_token"]
-        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
-        
-        await db.user_sessions.insert_one({
-            "user_id": user_id,
-            "session_token": session_token,
-            "expires_at": expires_at,
-            "created_at": datetime.now(timezone.utc)
-        })
-        
-        response.set_cookie(
-            key="session_token",
-            value=session_token,
-            httponly=True,
-            secure=True,
-            samesite="none",
-            max_age=604800,
-            path="/"
-        )
-        
-        user_obj = await db.users.find_one({"user_id": user_id}, {"_id": 0, "password_hash": 0})
-        return user_obj
-        
-    except Exception as e:
-        logger.error(f"Google session error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+# Google auth removed - using local auth only
 
 # ==================== BOOKING ENDPOINTS ====================
 
@@ -528,18 +414,8 @@ async def upload_quote_photo(quote_id: str, file: UploadFile = File(...)):
     if not quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     
-    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    path = f"{APP_NAME}/quotes/{quote_id}/{uuid.uuid4()}.{ext}"
-    data = await file.read()
-    
-    result = put_object(path, data, file.content_type or "image/jpeg")
-    
-    await db.quotes.update_one(
-        {"quote_id": quote_id},
-        {"$set": {"photo_url": result["path"]}}
-    )
-    
-    return {"photo_url": result["path"]}
+    # File upload disabled - storage removed
+    return {"photo_url": None, "message": "File upload not available"}
 
 @api_router.get("/quotes", response_model=List[Quote])
 async def get_quotes(request: Request):
@@ -572,14 +448,7 @@ async def delete_quote(quote_id: str, request: Request):
     
     return {"message": "Quote deleted"}
 
-@api_router.get("/files/{path:path}")
-async def download_file(path: str, authorization: str = Header(None), auth: str = Query(None)):
-    try:
-        data, content_type = get_object(path)
-        return FastAPIResponse(content=data, media_type=content_type)
-    except Exception as e:
-        logger.error(f"File download error: {e}")
-        raise HTTPException(status_code=404, detail="File not found")
+# File download removed - storage functionality removed
 
 # ==================== INVOICE ENDPOINTS ====================
 
@@ -954,15 +823,7 @@ async def get_paypal_status(order_id: str):
 
 @app.on_event("startup")
 async def startup():
-    # Initialize storage only if configured
-    if use_storage:
-        try:
-            init_storage()
-            logger.info("Storage initialized")
-        except Exception as e:
-            logger.warning(f"Storage initialization failed: {e} - continuing without storage")
-    else:
-        logger.info("Storage not configured - skipping initialization")
+    # Storage initialization removed
     
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")

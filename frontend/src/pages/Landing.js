@@ -81,11 +81,11 @@ export default function Landing() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/cpyhjggy_2026-03-28%2011.43.57.jpg', title: 'Striped Perfection' },
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/2qzzgrlp_2026-03-28%2011.44.07.jpg', title: 'Yard Transformation' },
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/x2iw3so3_2026-03-28%2011.44.09.jpg', title: 'Fresh Cut Lawns' },
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/29w2f6id_2026-03-28%2011.44.17.jpg', title: 'Precision Mowing' },
-              { url: 'https://customer-assets.emergentagent.com/job_fast-lane-lawn/artifacts/tnokpzg4_2026-03-28%2011.44.04.jpg', title: 'Crisp Clean Cuts' }
+              { url: 'https://via.placeholder.com/400x300/90EE90/000000?text=Lawn+Service', title: 'Striped Perfection' },
+              { url: 'https://via.placeholder.com/400x300/32CD32/000000?text=Yard+Work', title: 'Yard Transformation' },
+              { url: 'https://via.placeholder.com/400x300/228B22/000000?text=Landscaping', title: 'Fresh Cut Lawns' },
+              { url: 'https://via.placeholder.com/400x300/006400/000000?text=Mowing', title: 'Precision Mowing' },
+              { url: 'https://via.placeholder.com/400x300/008000/000000?text=Maintenance', title: 'Crisp Clean Cuts' }
             ].map((img, idx) => (
               <div
                 key={idx}
