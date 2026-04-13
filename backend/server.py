@@ -113,7 +113,7 @@ def send_resend_email(to_email: str, subject: str, html: str) -> None:
         logger.warning("RESEND_API_KEY is not configured; skipping email send.")
         return
 
-    sender_email = os.environ.get("RESEND_FROM_EMAIL", "Fast Lane Lawn Care <no-reply@mail.fastlanelawn.com>")
+    sender_email = os.environ.get("RESEND_FROM_EMAIL", "mail@fastlanelawn.com")
 
     try:
         response = requests.post(
