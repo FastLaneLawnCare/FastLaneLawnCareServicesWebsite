@@ -36,8 +36,6 @@ origins = [
     "https://api.fastlanelawn.com",   # API domain
     "http://localhost:8000",          # for local development
     "http://localhost:3000",          # frontend local development
-    "https://fastlanesite.vercel.app",
-    "https://fastlanelawncareserviceswebsite-production.up.railway.app/",
 ]
 
 app.add_middleware(
