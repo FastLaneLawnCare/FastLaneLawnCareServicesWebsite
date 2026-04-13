@@ -19,7 +19,12 @@ export function AuthProvider({ children }) {
       const { data } = await axios.get(`${API}/auth/me`, { withCredentials: true });
       setUser(data);
     } catch (error) {
-      setUser(null);
+      try {
+        const { data } = await axios.post(`${API}/auth/refresh`, {}, { withCredentials: true });
+        setUser(data);
+      } catch (refreshError) {
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -66,8 +71,26 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (name, phone) => {
+    try {
+      const { data } = await axios.patch(
+        `${API}/auth/profile`,
+        { name, phone },
+        { withCredentials: true }
+      );
+      setUser(data);
+      return { success: true };
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      let message = 'Profile update failed';
+      if (typeof detail === 'string') message = detail;
+      else if (Array.isArray(detail)) message = detail.map(e => e.msg || JSON.stringify(e)).join(' ');
+      return { success: false, error: message };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout, checkAuth, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

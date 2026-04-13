@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Phone, Envelope, MapPin } from '@phosphor-icons/react';
+import { Phone, Envelope, MapPin } from '@phosphor-icons/react';
+import { AuthContext } from '../context/AuthContext';
 
 import lawn1 from '../assets/images/Lawn1.jpg';
 import lawn2 from '../assets/images/Lawn2.jpg';
@@ -11,6 +12,7 @@ import yard from '../assets/images/Yard.jpg';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { user, loading } = useContext(AuthContext);
 
   return (
     <div className="min-h-screen bg-white">
@@ -23,10 +25,10 @@ export default function Landing() {
           <div className="flex gap-3">
             <button
               data-testid="header-login-btn"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(user ? '/my-account' : '/login')}
               className="px-6 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition-all duration-150"
             >
-              Login
+              {loading ? 'Loading' : user ? 'My Account' : 'Login'}
             </button>
             <button
               data-testid="header-book-now-btn"

@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { ArrowLeft, UploadSimple } from '@phosphor-icons/react';
+import { AuthContext } from '../context/AuthContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function QuoteRequest() {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,12 +20,23 @@ export default function QuoteRequest() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!user) return;
+
+    setFormData((current) => ({
+      ...current,
+      name: current.name || user.name || '',
+      email: current.email || user.email || '',
+      phone: current.phone || user.phone || ''
+    }));
+  }, [user]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data } = await axios.post(`${API}/quotes`, formData);
+      const { data } = await axios.post(`${API}/quotes`, formData, { withCredentials: true });
 
       if (file) {
         const formDataFile = new FormData();

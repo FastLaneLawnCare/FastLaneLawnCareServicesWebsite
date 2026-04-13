@@ -9,6 +9,7 @@ import Booking from './pages/Booking';
 import QuoteRequest from './pages/QuoteRequest';
 import Login from './pages/Login';
 import MyBookings from './pages/MyBookings';
+import MyAccount from './pages/MyAccount';
 import AdminDashboard from './pages/AdminDashboard';
 import AuthCallback from './pages/AuthCallback';
 import BookingSuccess from './pages/BookingSuccess';
@@ -28,6 +29,7 @@ function AppRouter() {
         <Route path="/booking-success" element={<BookingSuccess />} />
         <Route path="/quote" element={<QuoteRequest />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/my-account" element={<MyAccount />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/admin" element={<AdminDashboard />} />
       </Routes>

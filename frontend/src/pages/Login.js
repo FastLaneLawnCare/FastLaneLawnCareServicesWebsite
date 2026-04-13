@@ -1,13 +1,12 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { AuthContext } from '../context/AuthContext';
-import { toast } from 'sonner';
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register } = useContext(AuthContext);
+  const { user, loading: authLoading, login, register } = useContext(AuthContext);
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: '',
@@ -17,6 +16,13 @@ export default function Login() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      const from = location.state?.from || '/my-account';
+      navigate(from, { replace: true });
+    }
+  }, [authLoading, location.state, navigate, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +36,7 @@ export default function Login() {
     setLoading(false);
 
     if (result.success) {
-      const from = location.state?.from || '/my-bookings';
+      const from = location.state?.from || '/my-account';
       navigate(from);
     } else {
       setError(result.error);

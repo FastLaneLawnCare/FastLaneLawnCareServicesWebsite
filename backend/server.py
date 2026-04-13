@@ -162,6 +162,7 @@ class QuoteCreate(BaseModel):
 
 class Quote(BaseModel):
     quote_id: str
+    user_id: Optional[str] = None
     name: str
     email: str
     phone: str
@@ -204,6 +205,10 @@ class PaymentSessionCreate(BaseModel):
     booking_id: str
     payment_type: str
 
+class UserProfileUpdate(BaseModel):
+    name: str
+    phone: Optional[str] = None
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
@@ -224,6 +229,14 @@ def create_access_token(user_id: str, email: str) -> str:
 def create_refresh_token(user_id: str) -> str:
     payload = {"sub": user_id, "exp": datetime.now(timezone.utc) + timedelta(days=7), "type": "refresh"}
     return jwt.encode(payload, get_jwt_secret(), algorithm=JWT_ALGORITHM)
+
+def set_auth_cookies(response: Response, user_id: str, email: str) -> None:
+    access_token = create_access_token(user_id, email)
+    refresh_token = create_refresh_token(user_id)
+    is_secure = os.environ.get("ENVIRONMENT", "development") == "production"
+
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=is_secure, samesite="lax", max_age=900, path="/")
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
 
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("access_token")
@@ -310,14 +323,7 @@ async def register(user_data: UserCreate, response: Response):
     
     await db.users.insert_one(user_doc)
     
-    access_token = create_access_token(user_id, email)
-    refresh_token = create_refresh_token(user_id)
-    
-    # Determine secure flag based on environment
-    is_secure = os.environ.get("ENVIRONMENT", "development") == "production"
-    
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=is_secure, samesite="lax", max_age=900, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
+    set_auth_cookies(response, user_id, email)
     
     user_doc.pop("_id", None)
     user_doc.pop("password_hash", None)
@@ -353,14 +359,7 @@ async def login(credentials: UserLogin, response: Response):
     
     await db.login_attempts.delete_one({"identifier": identifier})
     
-    access_token = create_access_token(user["user_id"], email)
-    refresh_token = create_refresh_token(user["user_id"])
-    
-    # Determine secure flag based on environment
-    is_secure = os.environ.get("ENVIRONMENT", "development") == "production"
-    
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=is_secure, samesite="lax", max_age=900, path="/")
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=is_secure, samesite="lax", max_age=604800, path="/")
+    set_auth_cookies(response, user["user_id"], email)
     
     user_doc = {k: v for k, v in user.items() if k not in ["_id", "password_hash"]}
     return user_doc
@@ -369,6 +368,50 @@ async def login(credentials: UserLogin, response: Response):
 async def get_me(request: Request):
     user = await get_current_user(request)
     return user
+
+@api_router.post("/auth/refresh")
+async def refresh_auth(request: Request, response: Response):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    try:
+        payload = jwt.decode(refresh_token, get_jwt_secret(), algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+
+        user = await db.users.find_one({"user_id": payload["sub"]}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+
+        set_auth_cookies(response, user["user_id"], user["email"])
+        user.pop("password_hash", None)
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+@api_router.patch("/auth/profile")
+async def update_profile(profile_data: UserProfileUpdate, request: Request):
+    user = await get_current_user(request)
+
+    normalized_name = profile_data.name.strip()
+    normalized_phone = (profile_data.phone or "").strip() or None
+    if not normalized_name:
+        raise HTTPException(status_code=400, detail="Name is required")
+
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"name": normalized_name, "phone": normalized_phone}}
+    )
+
+    updated_user = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    updated_user.pop("password_hash", None)
+    return updated_user
 
 @api_router.post("/auth/logout")
 async def logout(response: Response):
@@ -458,11 +501,17 @@ async def delete_booking(booking_id: str, request: Request):
 # ==================== QUOTE ENDPOINTS ====================
 
 @api_router.post("/quotes", response_model=Quote)
-async def create_quote(quote_data: QuoteCreate):
+async def create_quote(quote_data: QuoteCreate, request: Request):
+    try:
+        user = await get_current_user(request)
+    except HTTPException:
+        user = None
+
     quote_id = f"quote_{uuid.uuid4().hex[:12]}"
     
     quote_doc = {
         "quote_id": quote_id,
+        "user_id": user.get("user_id") if user else None,
         "name": quote_data.name,
         "email": quote_data.email,
         "phone": quote_data.phone,
@@ -491,6 +540,20 @@ async def upload_quote_photo(quote_id: str, file: UploadFile = File(...)):
 async def get_quotes(request: Request):
     await require_admin(request)
     quotes = await db.quotes.find({}, {"_id": 0}).to_list(1000)
+    return quotes
+
+@api_router.get("/quotes/mine", response_model=List[Quote])
+async def get_my_quotes(request: Request):
+    user = await get_current_user(request)
+    quotes = await db.quotes.find(
+        {
+            "$or": [
+                {"user_id": user["user_id"]},
+                {"email": user["email"]}
+            ]
+        },
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
     return quotes
 
 @api_router.patch("/quotes/{quote_id}")
@@ -548,6 +611,15 @@ async def create_invoice(invoice_data: InvoiceCreate, request: Request):
 async def get_invoices(request: Request):
     await require_admin(request)
     invoices = await db.invoices.find({}, {"_id": 0}).to_list(1000)
+    return invoices
+
+@api_router.get("/invoices/mine", response_model=List[Invoice])
+async def get_my_invoices(request: Request):
+    user = await get_current_user(request)
+    invoices = await db.invoices.find(
+        {"customer_email": user["email"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
     return invoices
 
 @api_router.delete("/invoices/{invoice_id}")

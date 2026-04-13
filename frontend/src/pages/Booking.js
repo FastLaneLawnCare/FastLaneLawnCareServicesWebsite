@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Calendar as CalendarIcon, Clock as ClockIcon } from '@phosphor-icons/react';
+import { ArrowLeft, ArrowRight } from '@phosphor-icons/react';
 import { Calendar } from '../components/ui/calendar';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import { format } from 'date-fns';
+import { AuthContext } from '../context/AuthContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BOOKING_STAGES = ['Service', 'Date', 'Time', 'Details', 'Payment'];
@@ -19,6 +20,7 @@ const TIME_SLOTS = [
 
 export default function Booking() {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
   const [stage, setStage] = useState(0); // Start at 0 for service selection
   const [selectedService, setSelectedService] = useState('');
   const [servicePrice, setServicePrice] = useState(parseFloat(process.env.REACT_APP_DEFAULT_SERVICE_PRICE || '50.0'));
@@ -37,7 +39,6 @@ export default function Booking() {
   });
   const [addressConfirmed, setAddressConfirmed] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [mapUrl, setMapUrl] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [loading, setLoading] = useState(false);
   const services = [
@@ -50,6 +51,22 @@ export default function Booking() {
     { id: 'snow_removal', name: 'Snow Removal', description: 'Professional snow removal service', price: 30, note: 'Starting at' }
   ];
   const isFirstStage = stage === FIRST_STAGE_INDEX;
+
+  useEffect(() => {
+    if (!user) return;
+
+    const nameParts = (user.name || '').trim().split(/\s+/).filter(Boolean);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ');
+
+    setDetails((current) => ({
+      ...current,
+      firstName: current.firstName || firstName,
+      lastName: current.lastName || lastName,
+      phone: current.phone || user.phone || '',
+      email: current.email || user.email || ''
+    }));
+  }, [user]);
 
   const handleBack = () => {
     if (isFirstStage) {
@@ -79,10 +96,6 @@ export default function Booking() {
         return;
       }
       if (!addressConfirmed) {
-        // Show map for confirmation
-        const fullAddress = `${details.houseNumber} ${details.streetName}${details.aptNumber ? ' ' + details.aptNumber : ''}, ${details.city}, IL ${details.zipCode}`;
-        const encodedAddress = encodeURIComponent(fullAddress);
-        setMapUrl(`https://www.openstreetmap.org/export/embed.html?bbox=-89.1,40.4,-88.9,40.6&layer=mapnik&marker=40.484,89.003`);
         setShowMap(true);
         return;
       }
@@ -140,7 +153,7 @@ export default function Booking() {
 
       if (paymentMethod === 'cash') {
         toast.success('Booking created! Pay cash on service day.');
-        setTimeout(() => navigate('/my-bookings'), 2000);
+        setTimeout(() => navigate('/my-account'), 2000);
       } 
       
       else if (paymentMethod === 'stripe') {

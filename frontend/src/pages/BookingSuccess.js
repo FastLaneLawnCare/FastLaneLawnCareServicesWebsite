@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { CheckCircle } from '@phosphor-icons/react';
@@ -11,31 +11,7 @@ export default function BookingSuccess() {
   const [status, setStatus] = useState('processing');
   const [message, setMessage] = useState('Processing your payment...');
 
-  useEffect(() => {
-    const processPayment = async () => {
-      // Check for Stripe session
-      const stripeSessionId = searchParams.get('session_id');
-      if (stripeSessionId) {
-        await handleStripeSuccess(stripeSessionId);
-        return;
-      }
-
-      // Check for PayPal token
-      const paypalToken = searchParams.get('token');
-      if (paypalToken) {
-        await handlePayPalSuccess(paypalToken);
-        return;
-      }
-
-      // No payment info found
-      setStatus('error');
-      setMessage('No payment information found');
-    };
-
-    processPayment();
-  }, [searchParams]);
-
-  const handleStripeSuccess = async (sessionId) => {
+  const handleStripeSuccess = useCallback(async (sessionId) => {
     let attempts = 0;
     const maxAttempts = 5;
 
@@ -51,7 +27,7 @@ export default function BookingSuccess() {
         if (data.payment_status === 'paid') {
           setStatus('success');
           setMessage('Payment successful! Your booking is confirmed.');
-          setTimeout(() => navigate('/my-bookings'), 3000);
+          setTimeout(() => navigate('/my-account'), 3000);
           return;
         }
       } catch (error) {
@@ -63,9 +39,9 @@ export default function BookingSuccess() {
     };
 
     pollStatus();
-  };
+  }, [navigate]);
 
-  const handlePayPalSuccess = async (orderId) => {
+  const handlePayPalSuccess = useCallback(async (orderId) => {
     try {
       // Capture the PayPal order
       const { data } = await axios.post(`${API}/payments/paypal/capture/${orderId}`);
@@ -73,7 +49,7 @@ export default function BookingSuccess() {
       if (data.payment_status === 'paid') {
         setStatus('success');
         setMessage('PayPal payment successful! Your booking is confirmed.');
-        setTimeout(() => navigate('/my-bookings'), 3000);
+        setTimeout(() => navigate('/my-account'), 3000);
       } else {
         setStatus('processing');
         setMessage('Processing PayPal payment...');
@@ -94,7 +70,7 @@ export default function BookingSuccess() {
             if (statusData.payment_status === 'paid') {
               setStatus('success');
               setMessage('PayPal payment successful! Your booking is confirmed.');
-              setTimeout(() => navigate('/my-bookings'), 3000);
+              setTimeout(() => navigate('/my-account'), 3000);
               return;
             }
           } catch (error) {
@@ -112,7 +88,28 @@ export default function BookingSuccess() {
       setStatus('error');
       setMessage('Payment processing failed. Please contact support.');
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const processPayment = async () => {
+      const stripeSessionId = searchParams.get('session_id');
+      if (stripeSessionId) {
+        await handleStripeSuccess(stripeSessionId);
+        return;
+      }
+
+      const paypalToken = searchParams.get('token');
+      if (paypalToken) {
+        await handlePayPalSuccess(paypalToken);
+        return;
+      }
+
+      setStatus('error');
+      setMessage('No payment information found');
+    };
+
+    processPayment();
+  }, [handlePayPalSuccess, handleStripeSuccess, searchParams]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
@@ -141,7 +138,7 @@ export default function BookingSuccess() {
                 Booking Confirmed!
               </h2>
               <p className="text-lg mb-6">{message}</p>
-              <p className="text-[#71717A]">Redirecting to your bookings...</p>
+              <p className="text-[#71717A]">Redirecting to your account...</p>
             </>
           )}
 
@@ -160,10 +157,10 @@ export default function BookingSuccess() {
               </h2>
               <p className="text-lg mb-6">{message}</p>
               <button
-                onClick={() => navigate('/my-bookings')}
+                onClick={() => navigate('/my-account')}
                 className="px-6 py-3 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase hover:bg-black hover:text-[#CCFF00] transition"
               >
-                Go to My Bookings
+                Go to My Account
               </button>
             </>
           )}

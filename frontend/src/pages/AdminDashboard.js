@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Invoice, FileText, Calendar, Users, ChartBar, X } from '@phosphor-icons/react';
+import { FileText, Calendar, Users, ChartBar, X } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -110,20 +110,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleBookingUpdate = async (bookingId, updates) => {
-    try {
-      await axios.patch(
-        `${API}/bookings/${bookingId}`,
-        updates,
-        { withCredentials: true }
-      );
-      toast.success('Booking updated');
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to update booking');
-    }
-  };
-
   const handleCreateInvoice = async (e) => {
     e.preventDefault();
     const total = invoiceForm.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
@@ -189,10 +175,16 @@ export default function AdminDashboard() {
           </h1>
           <button
             data-testid="back-to-bookings"
-            onClick={() => navigate('/my-bookings')}
+            onClick={() => navigate('/my-account')}
             className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition"
           >
-            My Bookings
+            My Account
+          </button>
+          <button
+            onClick={() => window.location.href = 'https://fastlanelawn.com'}
+            className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
+          >
+            Home Page
           </button>
         </div>
       </header>
