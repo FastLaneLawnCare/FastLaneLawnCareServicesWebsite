@@ -43,13 +43,18 @@ app = FastAPI()
 
 app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
+        allow_origins=[
+        "https://fastlanelawn.com",
+        "https://www.fastlanelawn.com",
+        "https://api.fastlanelawn.com",
+        "https://api.fastlanelawn.com/api/auth/me",
+        "https://api.fastlanelawn.com/api/payments/stripe/create-session"
+    ],
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
-)
+    )
     
-
 # ✅ 2. DEFINE ROUTERS
 api_router = APIRouter(prefix="/api")
 
@@ -61,9 +66,6 @@ bookings_router = APIRouter(prefix="/bookings")
 api_router.include_router(auth_router)
 api_router.include_router(bookings_router)
 api_router.include_router(payments_router)
-
-# ✅ 4. INCLUDE MAIN ROUTER
-app.include_router(api_router)
 
 # define routes here...
 @api_router.get("/test")
@@ -960,6 +962,9 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
+
+# ✅ 4. INCLUDE MAIN ROUTER
+app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
