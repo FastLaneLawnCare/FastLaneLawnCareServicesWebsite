@@ -48,11 +48,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Root API router
 api_router = APIRouter(prefix="/api")
+
+# Sub routers
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
 stripe_router = APIRouter(prefix="/stripe")
 paypal_router = APIRouter(prefix="/paypal")
+
+# Attach payment sub-routers
+payments_router.include_router(stripe_router)
+payments_router.include_router(paypal_router)
+
+# Attach main feature routers
+api_router.include_router(auth_router)
+api_router.include_router(payments_router)
+
+# Attach everything to app
+app.include_router(api_router)
 
 # define routes here...
 @api_router.get("/test")
@@ -1006,12 +1020,6 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
-
-# ✅ THEN include router
-api_router.include_router(auth_router)
-payments_router.include_router(stripe_router)
-api_router.include_router(payments_router)
-app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
