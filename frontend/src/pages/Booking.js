@@ -129,13 +129,31 @@ export default function Booking() {
       if (paymentMethod === 'cash') {
         toast.success('Booking created! Pay cash on service day.');
         setTimeout(() => navigate('/my-bookings'), 2000);
-      } else if (paymentMethod === 'stripe') {
-        const { data: sessionData } = await axios.post(`${API}/payments/stripe/create-session`, {
-          booking_id: data.booking_id,
-          payment_type: 'stripe'
-        });
-        window.location.href = sessionData.url;
-      } else if (paymentMethod === 'paypal') {
+      } 
+      
+      else if (paymentMethod === 'stripe') {
+  try {
+    const { data: sessionData } = await axios.post(
+      `${API}/payments/stripe/create-session`,
+      {
+        booking_id: data.booking_id,
+        payment_type: 'stripe'
+      }
+    );
+
+    if (!sessionData?.url) {
+      throw new Error("Missing Stripe checkout URL");
+    }
+
+    window.location.href = sessionData.url;
+
+  } catch (err) {
+    console.error("Stripe session error:", err);
+    alert("Failed to start Stripe checkout. Please try again.");
+  }
+}
+      
+      else if (paymentMethod === 'paypal') {
         const { data: paypalData } = await axios.post(`${API}/payments/paypal/create-order`, {
           booking_id: data.booking_id,
           payment_type: 'paypal'
