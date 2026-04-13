@@ -71,11 +71,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const updateProfile = async (name, phone) => {
+  const updateProfile = async (profileData) => {
     try {
       const { data } = await axios.patch(
         `${API}/auth/profile`,
-        { name, phone },
+        profileData,
         { withCredentials: true }
       );
       setUser(data);

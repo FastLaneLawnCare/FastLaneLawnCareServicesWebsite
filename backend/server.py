@@ -225,6 +225,11 @@ class User(BaseModel):
     name: str
     role: str = "customer"
     phone: Optional[str] = None
+    house_number: Optional[str] = None
+    street_name: Optional[str] = None
+    apt_number: Optional[str] = None
+    city: Optional[str] = None
+    zip_code: Optional[str] = None
     created_at: str
 
 class UserCreate(BaseModel):
@@ -320,6 +325,11 @@ class PaymentSessionCreate(BaseModel):
 class UserProfileUpdate(BaseModel):
     name: str
     phone: Optional[str] = None
+    house_number: Optional[str] = None
+    street_name: Optional[str] = None
+    apt_number: Optional[str] = None
+    city: Optional[str] = None
+    zip_code: Optional[str] = None
 
 # ==================== AUTH HELPERS ====================
 
@@ -510,12 +520,25 @@ async def update_profile(profile_data: UserProfileUpdate, request: Request):
 
     normalized_name = profile_data.name.strip()
     normalized_phone = (profile_data.phone or "").strip() or None
+    normalized_house_number = (profile_data.house_number or "").strip() or None
+    normalized_street_name = (profile_data.street_name or "").strip() or None
+    normalized_apt_number = (profile_data.apt_number or "").strip() or None
+    normalized_city = (profile_data.city or "").strip() or None
+    normalized_zip_code = (profile_data.zip_code or "").strip() or None
     if not normalized_name:
         raise HTTPException(status_code=400, detail="Name is required")
 
     await db.users.update_one(
         {"user_id": user["user_id"]},
-        {"$set": {"name": normalized_name, "phone": normalized_phone}}
+        {"$set": {
+            "name": normalized_name,
+            "phone": normalized_phone,
+            "house_number": normalized_house_number,
+            "street_name": normalized_street_name,
+            "apt_number": normalized_apt_number,
+            "city": normalized_city,
+            "zip_code": normalized_zip_code
+        }}
     )
 
     updated_user = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})

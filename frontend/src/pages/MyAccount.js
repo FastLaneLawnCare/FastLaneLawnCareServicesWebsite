@@ -17,7 +17,15 @@ export default function MyAccount() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    phone: '',
+    houseNumber: '',
+    streetName: '',
+    aptNumber: '',
+    city: 'Bloomington',
+    zipCode: ''
+  });
 
   const fetchAccountData = useCallback(async () => {
     try {
@@ -79,7 +87,12 @@ export default function MyAccount() {
     if (user) {
       setProfileForm({
         name: user.name || '',
-        phone: user.phone || ''
+        phone: user.phone || '',
+        houseNumber: user.house_number || '',
+        streetName: user.street_name || '',
+        aptNumber: user.apt_number || '',
+        city: user.city || 'Bloomington',
+        zipCode: user.zip_code || ''
       });
       fetchAccountData();
       checkPaymentStatus();
@@ -90,7 +103,15 @@ export default function MyAccount() {
     e.preventDefault();
     setSavingProfile(true);
 
-    const result = await updateProfile(profileForm.name, profileForm.phone);
+    const result = await updateProfile({
+      name: profileForm.name,
+      phone: profileForm.phone,
+      house_number: profileForm.houseNumber,
+      street_name: profileForm.streetName,
+      apt_number: profileForm.aptNumber,
+      city: profileForm.city,
+      zip_code: profileForm.zipCode
+    });
     setSavingProfile(false);
 
     if (result.success) {
@@ -319,6 +340,63 @@ export default function MyAccount() {
                     onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))}
                     className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
                   />
+                </div>
+                <div className="border-2 border-black p-4 bg-[#F4F4F5]">
+                  <h3 className="font-bold uppercase text-sm mb-4">Service Address</h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block font-semibold uppercase text-xs mb-2">House/Building Number *</label>
+                      <input
+                        type="text"
+                        value={profileForm.houseNumber}
+                        onChange={(e) => setProfileForm((current) => ({ ...current, houseNumber: e.target.value }))}
+                        className="w-full h-12 px-4 border-2 border-black text-base focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold uppercase text-xs mb-2">Street Name *</label>
+                      <input
+                        type="text"
+                        value={profileForm.streetName}
+                        onChange={(e) => setProfileForm((current) => ({ ...current, streetName: e.target.value }))}
+                        className="w-full h-12 px-4 border-2 border-black text-base focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block font-semibold uppercase text-xs mb-2">Apt/Lot # (Optional)</label>
+                      <input
+                        type="text"
+                        value={profileForm.aptNumber}
+                        onChange={(e) => setProfileForm((current) => ({ ...current, aptNumber: e.target.value }))}
+                        className="w-full h-12 px-4 border-2 border-black text-base focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold uppercase text-xs mb-2">City *</label>
+                      <input
+                        type="text"
+                        value={profileForm.city}
+                        readOnly
+                        className="w-full h-12 px-4 border-2 border-black text-base bg-gray-100 focus:outline-none"
+                        title="We service within 45 miles of Bloomington, IL"
+                      />
+                      <p className="text-xs text-[#71717A] mt-1">45 mile radius from Bloomington, IL</p>
+                    </div>
+                    <div>
+                      <label className="block font-semibold uppercase text-xs mb-2">Zip Code *</label>
+                      <input
+                        type="text"
+                        maxLength="5"
+                        value={profileForm.zipCode}
+                        onChange={(e) => setProfileForm((current) => ({ ...current, zipCode: e.target.value.replace(/\D/g, '') }))}
+                        className="w-full h-12 px-4 border-2 border-black text-base focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block font-semibold uppercase text-sm mb-2">Email</label>
