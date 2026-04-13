@@ -41,20 +41,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# ✅ 1. ADD MIDDLEWARE FIRST
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://fastlanelawn.com",
-        "https://www.fastlanelawn.com",
-        "https://api.fastlanelawn.com",
-        "https://api.fastlanelawn.com/api/auth/me",
-        "https://api.fastlanelawn.com/api/payments/stripe/create-session"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
 )
+    
 
 # ✅ 2. DEFINE ROUTERS
 api_router = APIRouter(prefix="/api")

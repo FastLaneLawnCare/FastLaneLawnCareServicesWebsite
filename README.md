@@ -278,3 +278,19 @@ vercel deploy --prod
 - Test API (Check if the API is Online)
 om
 > https://api.fastlanelawn.com/api/test/
+
+
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+        "https://fastlanelawn.com",
+        "https://www.fastlanelawn.com",
+        "https://api.fastlanelawn.com",
+        "https://api.fastlanelawn.com/api/auth/me",
+        "https://api.fastlanelawn.com/api/payments/stripe/create-session"
+    ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
