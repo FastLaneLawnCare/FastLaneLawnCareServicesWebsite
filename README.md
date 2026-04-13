@@ -273,3 +273,7 @@ Use this if things still don't work:
 - [ ] Check browser DevTools → Application → Cookies
 - [ ] Cookies must have secure=true flag in HTTPS
 ---
+## LOGINS
+- MongoDB
+> Username: fastlanelawnbusiness_db_user
+> Password: FastLaneAdmin123
