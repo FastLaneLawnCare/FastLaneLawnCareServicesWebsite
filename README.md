@@ -243,7 +243,8 @@ vercel deploy --prod
 | `ADMIN_PASSWORD` | Backend | Initial admin password | `secure_password` |
 ---
 ## Debugging Checklist
-Use this if things still don't work:
+
+*Use this if things still don't work:*
 
 ### Signup/Login Not Working?
 - [ ] Is `MONGO_URL` correctly set?
@@ -251,7 +252,6 @@ Use this if things still don't work:
 - [ ] Check backend logs for errors: `console.error()` and `logger.error()`
 - [ ] Check browser console (F12) for CORS errors
 - [ ] Is `FRONTEND_URL` set to your Vercel domain?
-> fastlanelawncareserviceswebsite-production.up.railway.app
 ### Bookings Not Working?
 - [ ] Can you signup/login? (fix that first)
 - [ ] Is MongoDB database available?
