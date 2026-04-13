@@ -18,10 +18,6 @@ import bcrypt
 import jwt
 import requests
 
-# Stripe
-import stripe
-from stripe import StripeCheckout, CheckoutSessionRequest
-
 # PayPal (your existing)
 from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
 from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
@@ -648,7 +644,69 @@ async def get_analytics(request: Request):
 
 # ==================== PAYMENT ENDPOINTS ====================
 
+import stripe
+stripe.api_key = os.environ.get("STRIPE_API_KEY")
+
 @stripe_router.post("/create-session")
+async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
+
+    booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    host_url = str(http_request.base_url).rstrip("/")
+    success_url = f"{host_url}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{host_url}/booking"
+
+    stripe_api_key = os.environ.get("STRIPE_API_KEY")
+    if not stripe_api_key:
+        raise HTTPException(status_code=503, detail="Stripe API key not configured")
+
+    stripe.api_key = stripe_api_key
+
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            mode="payment",
+            line_items=[
+                {
+                    "price_data": {
+                        "currency": "usd",
+                        "product_data": {
+                            "name": f"Booking {payment_data.booking_id}",
+                        },
+                        "unit_amount": int(float(booking["amount"]) * 100),
+                    },
+                    "quantity": 1,
+                }
+            ],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "booking_id": payment_data.booking_id
+            }
+        )
+
+        await db.payment_transactions.insert_one({
+            "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+            "booking_id": payment_data.booking_id,
+            "session_id": session.id,
+            "amount": booking["amount"],
+            "currency": "usd",
+            "payment_type": "stripe",
+            "payment_status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+
+        return {
+            "url": session.url,
+            "session_id": session.id
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@stripe_router.post("/create-session-old")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     if not StripeCheckout:
         raise HTTPException(status_code=503, detail="Stripe integration not available. Please contact support.")
