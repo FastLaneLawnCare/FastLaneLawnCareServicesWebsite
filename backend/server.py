@@ -61,13 +61,19 @@ api_router = APIRouter(prefix="/api")
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
 bookings_router = APIRouter(prefix="/bookings")
+stripe_router = APIRouter(prefix="/stripe")
+paypal_router = APIRouter(prefix="/paypal")
 
-# ✅ 3. NEST ROUTERS
+# nesting
+payments_router.include_router(stripe_router)
+payments_router.include_router(paypal_router)
+
 api_router.include_router(auth_router)
 api_router.include_router(bookings_router)
 api_router.include_router(payments_router)
 
-# define routes here...
+app.include_router(api_router)
+
 @api_router.get("/test")
 async def test():
     return {"message": "API is working"}
@@ -962,9 +968,6 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
-
-# ✅ 4. INCLUDE MAIN ROUTER
-app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
