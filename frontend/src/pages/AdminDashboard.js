@@ -245,7 +245,7 @@ export default function AdminDashboard() {
           </div>
         </header>
         <div className="max-w-4xl mx-auto px-6 py-10">
-          <div className="border-2 border-black p-6 bg-white">
+          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal>
             <h2 className="text-2xl font-black uppercase mb-4">{myStaffMetrics.name}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
               <div>
@@ -323,7 +323,9 @@ export default function AdminDashboard() {
             <div
               key={idx}
               data-testid={`stat-${stat.label.toLowerCase().replace(/\s/g, '-')}`}
-              className="border-2 border-black p-6 bg-white"
+              className="border-2 border-black p-6 bg-white reveal-up"
+              data-reveal
+              style={{ '--reveal-delay': `${idx * 55}ms` }}
             >
               <stat.icon size={32} weight="bold" className="mb-3" />
               <p className="text-sm font-semibold uppercase text-[#71717A]">{stat.label}</p>
@@ -366,7 +368,7 @@ export default function AdminDashboard() {
           </TabsList>
 
           {/* Invoice Creator */}
-          <TabsContent value="invoices" className="mt-6" data-testid="invoices-content">
+          <TabsContent value="invoices" className="mt-6 tab-animated" data-testid="invoices-content">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Invoice Creator
@@ -506,7 +508,7 @@ export default function AdminDashboard() {
             {/* Invoices List - Mobile Responsive */}
             <div className="space-y-4">
               {invoices.map((invoice) => (
-                <div key={invoice.invoice_id} className="border-2 border-black p-4 bg-white" data-testid={`invoice-${invoice.invoice_id}`}>
+                <div key={invoice.invoice_id} className="border-2 border-black p-4 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`invoice-${invoice.invoice_id}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="font-mono text-sm font-bold">#{invoice.invoice_id.slice(-8).toUpperCase()}</p>
@@ -536,13 +538,13 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Quote Requests */}
-          <TabsContent value="quotes" className="mt-6" data-testid="quotes-content">
+          <TabsContent value="quotes" className="mt-6 tab-animated" data-testid="quotes-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               Quote Requests
             </h2>
             <div className="space-y-4">
               {quotes.map((quote) => (
-                <div key={quote.quote_id} className="border-2 border-black p-6 bg-white" data-testid={`quote-${quote.quote_id}`}>
+                <div key={quote.quote_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`quote-${quote.quote_id}`}>
                   <div className="flex gap-6">
                     {/* Photo Thumbnail */}
                     {quote.photo_url && (
@@ -616,13 +618,13 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Bookings - Mobile Responsive */}
-          <TabsContent value="bookings" className="mt-6" data-testid="bookings-content">
+          <TabsContent value="bookings" className="mt-6 tab-animated" data-testid="bookings-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               All Bookings
             </h2>
             <div className="space-y-4">
               {bookings.map((booking) => (
-                <div key={booking.booking_id} className="border-2 border-black p-4 bg-white" data-testid={`booking-${booking.booking_id}`}>
+                <div key={booking.booking_id} className="border-2 border-black p-4 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`booking-${booking.booking_id}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="font-mono text-sm font-bold">#{booking.booking_id.slice(-8).toUpperCase()}</p>
@@ -661,13 +663,13 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Staff Monitoring */}
-          <TabsContent value="staff" className="mt-6" data-testid="staff-content">
+          <TabsContent value="staff" className="mt-6 tab-animated" data-testid="staff-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               Staff Monitoring
             </h2>
             <div className="grid gap-6">
               {staff.map((member) => (
-                <div key={member.user_id} className="border-2 border-black p-6 bg-white" data-testid={`staff-${member.user_id}`}>
+                <div key={member.user_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`staff-${member.user_id}`}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-black uppercase text-lg">{member.name}</h3>

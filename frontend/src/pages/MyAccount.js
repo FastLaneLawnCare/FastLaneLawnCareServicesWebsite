@@ -179,17 +179,17 @@ export default function MyAccount() {
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <div className="border-2 border-black p-6 bg-white">
+          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '0ms' }}>
             <p className="text-sm font-semibold uppercase text-[#71717A]">Customer</p>
             <p className="text-2xl font-black mt-2">{user?.name}</p>
             <p className="mt-2 break-all">{user?.email}</p>
             <p className="mt-1">{user?.phone || 'No phone saved yet'}</p>
           </div>
-          <div className="border-2 border-black p-6 bg-white">
+          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '70ms' }}>
             <p className="text-sm font-semibold uppercase text-[#71717A]">Submitted Quotes</p>
             <p className="text-4xl font-black mt-2">{quotes.length}</p>
           </div>
-          <div className="border-2 border-black p-6 bg-white">
+          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '140ms' }}>
             <p className="text-sm font-semibold uppercase text-[#71717A]">Bookings / Invoices</p>
             <p className="text-4xl font-black mt-2">{bookings.length} / {invoices.length}</p>
           </div>
@@ -211,7 +211,7 @@ export default function MyAccount() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="bookings" className="mt-6">
+          <TabsContent value="bookings" className="mt-6 tab-animated">
             {bookings.length === 0 ? (
               <EmptyState
                 title="No bookings yet"
@@ -222,7 +222,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {bookings.map((booking) => (
-                  <div key={booking.booking_id} className="border-2 border-black p-6 bg-white hover:shadow-[4px_4px_0px_#0A0A0A] transition-shadow">
+                  <div key={booking.booking_id} className="border-2 border-black p-6 bg-white hover:shadow-[4px_4px_0px_#0A0A0A] transition-shadow reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -247,7 +247,7 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="quotes" className="mt-6">
+          <TabsContent value="quotes" className="mt-6 tab-animated">
             {quotes.length === 0 ? (
               <EmptyState
                 title="No submitted quotes yet"
@@ -258,7 +258,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {quotes.map((quote) => (
-                  <div key={quote.quote_id} className="border-2 border-black p-6 bg-white">
+                  <div key={quote.quote_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -280,7 +280,7 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="invoices" className="mt-6">
+          <TabsContent value="invoices" className="mt-6 tab-animated">
             {invoices.length === 0 ? (
               <EmptyState
                 title="No invoices yet"
@@ -289,7 +289,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {invoices.map((invoice) => (
-                  <div key={invoice.invoice_id} className="border-2 border-black p-6 bg-white">
+                  <div key={invoice.invoice_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -316,8 +316,8 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
-            <form onSubmit={handleProfileSave} className="border-2 border-black p-6 bg-[#F4F4F5] max-w-2xl">
+          <TabsContent value="profile" className="mt-6 tab-animated">
+            <form onSubmit={handleProfileSave} className="border-2 border-black p-6 bg-[#F4F4F5] max-w-2xl reveal-up" data-reveal>
               <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Edit Profile
               </h2>
