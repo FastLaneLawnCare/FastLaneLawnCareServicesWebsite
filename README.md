@@ -31,7 +31,7 @@ DB_NAME=fastlanelawn
 JWT_SECRET=your-very-long-random-secret-key-here-change-this
 
 # Frontend URL for CORS - comma-separated for multiple origins
-FRONTEND_URL=https://fastlanelawn.com
+FRONTEND_URL=https://fastlanesite.vercel.app/
 # For local development:
 FRONTEND_URL=http://localhost:3000
 
@@ -185,13 +185,13 @@ You MUST set these for the app to work:
 MONGO_URL=your_mongodb_connection_string
 DB_NAME=fastlanelawn
 JWT_SECRET=your_secret_key_here
-FRONTEND_URL=https://your-vercel-domain.vercel.app
+FRONTEND_URL=https://fastlanesite.vercel.app/
 ENVIRONMENT=production
 ```
 
 **Frontend (.env.local or Vercel environment settings)**:
 ```
-REACT_APP_BACKEND_URL=https://your-vercel-domain.vercel.app
+REACT_APP_BACKEND_URL=https://fastlanesite.vercel.app/
 ```
 
 ### 2. **Verify MongoDB Connection**
@@ -277,3 +277,6 @@ Use this if things still don't work:
 - MongoDB
 > Username: fastlanelawnbusiness_db_user
 > Password: FastLaneAdmin123
+
+- CONFIG
+> FRONTEND_URL: https://fastlanesite.vercel.app/
