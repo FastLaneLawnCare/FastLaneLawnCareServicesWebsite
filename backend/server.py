@@ -109,25 +109,6 @@ async def get_me(request: Request):
     user = await get_current_user(request)
     return user
 
-@stripe_router.post("/startStripeTest")
-async def start_stripe_test(request: Request):
-    import stripe, os
-
-    stripe.api_key = "sk_test_51TJf12D9yJO9MAq2k635C8mYV3MBSMN9K9ZCLT1ArA9o0AIVOrNZbG2QivBcijWJvKrrBNeZLsf83MsS4sqZ9VB800hCIwfqoY"
-
-    host_url = "https://api.fastlanelawn.com"  # hardcode for reliability
-
-    session = stripe.checkout.Session.create(
-       success_url="https://example.com/success",
-       line_items=[{"price": "price_1MotwRLkdIwHu7ixYcPLm5uZ", "quantity": 2}],
-       mode="payment",
-    )
-
-    return {
-        "url": session.url,
-        "session_id": session.id
-    }
-
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 # Configure logging
@@ -674,9 +655,10 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    host_url = str(http_request.base_url).rstrip("/")
-    success_url = f"{host_url}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{host_url}/booking"
+    BASE_URL = "https://api.fastlanelawn.com"
+    host_url = str(http_request.base_url).rstrip('/')
+    success_url = f"{BASE_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{BASE_URL}/booking"
 
     stripe_api_key = os.environ.get("STRIPE_API_KEY")
     if not stripe_api_key:
@@ -724,56 +706,9 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)
 
-@stripe_router.post("/create-session-old")
-async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
-    if not StripeCheckout:
-        raise HTTPException(status_code=503, detail="Stripe integration not available. Please contact support.")
-    
-    booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    
-    host_url = str(http_request.base_url).rstrip('/')
-    success_url = f"{host_url}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{host_url}/booking"
-    
-    stripe_api_key = os.environ.get("STRIPE_API_KEY")
-    if not stripe_api_key:
-        raise HTTPException(status_code=503, detail="Stripe API key not configured")
-    
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
-    
-    try:
-        checkout_request = CheckoutSessionRequest(
-            amount=float(booking["amount"]),
-            currency="usd",
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={"booking_id": payment_data.booking_id}
-        )
-        
-        session = await stripe_checkout.create_checkout_session(checkout_request)
-        
-        await db.payment_transactions.insert_one({
-            "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
-            "booking_id": payment_data.booking_id,
-            "session_id": session.session_id,
-            "amount": booking["amount"],
-            "currency": "usd",
-            "payment_type": "stripe",
-            "payment_status": "pending",
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
-        
-        return {"url": session.url, "session_id": session.session_id}
-    except Exception as e:
-        logger.error(f"Stripe session creation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to create payment session: {str(e)}")
-
-@payments_router.get("/stripe/status/{session_id}")
+@stripe_router.get("/status/{session_id}")
 async def get_stripe_status(session_id: str):
     if not StripeCheckout:
         raise HTTPException(status_code=503, detail="Stripe integration not available")
