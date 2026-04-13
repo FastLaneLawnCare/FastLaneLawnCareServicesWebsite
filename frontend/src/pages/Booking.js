@@ -6,6 +6,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { AuthContext } from '../context/AuthContext';
+import { formatPhoneNumber } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BOOKING_STAGES = ['Service', 'Date', 'Time', 'Details', 'Payment'];
@@ -18,14 +19,6 @@ const TIME_SLOTS = [
   '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
   '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM'
 ];
-
-const formatPhoneNumber = (value) => {
-  const digits = value.replace(/\D/g, '').slice(0, 10);
-  if (digits.length === 0) return '';
-  if (digits.length < 4) return `(${digits}`;
-  if (digits.length < 7) return `(${digits.slice(0, 3)})-${digits.slice(3)}`;
-  return `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
-};
 
 export default function Booking() {
   const navigate = useNavigate();
@@ -76,7 +69,7 @@ export default function Booking() {
       ...current,
       firstName: current.firstName || firstName,
       lastName: current.lastName || lastName,
-      phone: current.phone || user.phone || '',
+      phone: current.phone || formatPhoneNumber(user.phone || ''),
       email: current.email || user.email || '',
       houseNumber: current.houseNumber || user.house_number || '',
       streetName: current.streetName || user.street_name || '',

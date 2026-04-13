@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from '@phosphor-icons/react';
 import { AuthContext } from '../context/AuthContext';
+import { formatPhoneNumber } from '../lib/phone';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -120,7 +121,9 @@ export default function Login() {
                 data-testid="phone-input"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
+                placeholder="(000)-000-0000"
+                maxLength="14"
                 className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
               />
             </div>

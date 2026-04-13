@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { FileText, Calendar, Users, ChartBar, X } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { formatPhoneNumberForDisplay } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -563,7 +564,7 @@ export default function AdminDashboard() {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="font-black uppercase text-lg">{quote.name}</h3>
-                          <p className="text-sm text-[#71717A]">{quote.email} • {quote.phone}</p>
+                          <p className="text-sm text-[#71717A]">{quote.email} • {formatPhoneNumberForDisplay(quote.phone)}</p>
                         </div>
                         <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
                           quote.status === 'pending' ? 'bg-[#CCFF00]' : 

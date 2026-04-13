@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Calendar, Clock, CreditCard, FileText, House, MapPin, Phone, Receipt } from '@phosphor-icons/react';
 import { toast } from 'sonner';
+import { formatPhoneNumber, formatPhoneNumberForDisplay } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -87,7 +88,7 @@ export default function MyAccount() {
     if (user) {
       setProfileForm({
         name: user.name || '',
-        phone: user.phone || '',
+        phone: formatPhoneNumber(user.phone || ''),
         houseNumber: user.house_number || '',
         streetName: user.street_name || '',
         aptNumber: user.apt_number || '',
@@ -183,7 +184,7 @@ export default function MyAccount() {
             <p className="text-sm font-semibold uppercase text-[#71717A]">Customer</p>
             <p className="text-2xl font-black mt-2">{user?.name}</p>
             <p className="mt-2 break-all">{user?.email}</p>
-            <p className="mt-1">{user?.phone || 'No phone saved yet'}</p>
+            <p className="mt-1">{formatPhoneNumberForDisplay(user?.phone) || 'No phone saved yet'}</p>
           </div>
           <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '70ms' }}>
             <p className="text-sm font-semibold uppercase text-[#71717A]">Submitted Quotes</p>
@@ -270,7 +271,7 @@ export default function MyAccount() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 text-sm">
                       <IconRow icon={House} text={quote.name} />
-                      <IconRow icon={Phone} text={quote.phone} />
+                      <IconRow icon={Phone} text={formatPhoneNumberForDisplay(quote.phone)} />
                       <IconRow icon={Receipt} text={quote.email} />
                       <IconRow icon={FileText} text={quote.response_message || 'Awaiting response from Fast Lane'} />
                     </div>
@@ -337,7 +338,9 @@ export default function MyAccount() {
                   <input
                     type="tel"
                     value={profileForm.phone}
-                    onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))}
+                    onChange={(e) => setProfileForm((current) => ({ ...current, phone: formatPhoneNumber(e.target.value) }))}
+                    placeholder="(000)-000-0000"
+                    maxLength="14"
                     className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
                   />
                 </div>
