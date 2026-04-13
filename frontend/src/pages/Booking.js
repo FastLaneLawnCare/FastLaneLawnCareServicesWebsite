@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BOOKING_STAGES = ['Service', 'Date', 'Time', 'Details', 'Payment'];
+const FIRST_STAGE_INDEX = 0;
+const LAST_STAGE_INDEX = BOOKING_STAGES.length - 1;
 
 const TIME_SLOTS = [
   '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
@@ -46,6 +49,16 @@ export default function Booking() {
     { id: 'yard_cleanup', name: 'Yard Cleanup', description: 'Includes: Leaves & sticks removal & raking', price: 35, note: 'Starting at' },
     { id: 'snow_removal', name: 'Snow Removal', description: 'Professional snow removal service', price: 30, note: 'Starting at' }
   ];
+  const isFirstStage = stage === FIRST_STAGE_INDEX;
+
+  const handleBack = () => {
+    if (isFirstStage) {
+      window.location.href = 'https://fastlanelawn.com';
+      return;
+    }
+
+    setStage((currentStage) => Math.max(FIRST_STAGE_INDEX, currentStage - 1));
+  };
 
   const handleNext = () => {
     if (stage === 0 && !selectedService) {
@@ -74,7 +87,7 @@ export default function Booking() {
         return;
       }
     }
-    setStage(stage + 1);
+    setStage((currentStage) => Math.min(LAST_STAGE_INDEX, currentStage + 1));
   };
 
   const handleAddressConfirmation = (confirmed) => {
@@ -92,7 +105,7 @@ export default function Booking() {
       });
       setAddressConfirmed(true);
       setShowMap(false);
-      setStage(stage + 1);
+      setStage((currentStage) => Math.min(LAST_STAGE_INDEX, currentStage + 1));
     } else {
       setShowMap(false);
     }
@@ -169,11 +182,11 @@ export default function Booking() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <button
             data-testid="back-button"
-            onClick={() => stage === 1 ? navigate('/') : setStage(stage - 1)}
+            onClick={handleBack}
             className="flex items-center gap-2 font-bold uppercase text-sm hover:text-[#71717A] transition"
           >
             <ArrowLeft size={20} weight="bold" />
-            {stage === 1 ? 'Back to Home' : 'Previous Step'}
+            {isFirstStage ? 'Back to Home' : `Back to ${BOOKING_STAGES[stage - 1]}`}
           </button>
         </div>
       </header>
@@ -182,7 +195,7 @@ export default function Booking() {
         {/* Progress Indicator */}
         <div className="mb-12" data-testid="progress-indicator">
           <div className="flex justify-between items-center">
-            {[0, 1, 2, 3, 4].map((s) => (
+            {BOOKING_STAGES.map((stageLabel, s) => (
               <div key={s} className="flex items-center flex-1">
                 <div
                   className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${
@@ -196,11 +209,9 @@ export default function Booking() {
             ))}
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs font-semibold uppercase">Service</span>
-            <span className="text-xs font-semibold uppercase">Date</span>
-            <span className="text-xs font-semibold uppercase">Time</span>
-            <span className="text-xs font-semibold uppercase">Details</span>
-            <span className="text-xs font-semibold uppercase">Payment</span>
+            {BOOKING_STAGES.map((stageLabel) => (
+              <span key={stageLabel} className="text-xs font-semibold uppercase">{stageLabel}</span>
+            ))}
           </div>
         </div>
 
