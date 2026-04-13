@@ -51,16 +51,16 @@ export default function Landing() {
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative z-10 text-center px-6">
           <h2
-            className="text-5xl sm:text-6xl font-black tracking-tighter uppercase text-white mb-6"
-            style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
+            className="hero-reveal text-5xl sm:text-6xl font-black tracking-tighter uppercase text-white mb-6"
+            style={{ '--hero-delay': '40ms', fontFamily: 'Cabinet Grotesk, sans-serif' }}
             data-testid="hero-heading"
           >
             Lightning-Fast<br />Lawn Service
           </h2>
-          <p className="text-xl text-white mb-8 max-w-2xl mx-auto font-medium">
+          <p className="hero-reveal text-xl text-white mb-8 max-w-2xl mx-auto font-medium" style={{ '--hero-delay': '120ms' }}>
             Professional lawn care that moves at your speed. Quality results, zero wait.
           </p>
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="hero-reveal flex gap-4 justify-center flex-wrap" style={{ '--hero-delay': '200ms' }}>
             <button
               data-testid="hero-book-now-btn"
               onClick={() => navigate('/booking')}
@@ -80,10 +80,11 @@ export default function Landing() {
       </section>
 
       {/* Previous Work Gallery */}
-      <section className="py-24 px-6 bg-white" data-testid="gallery-section">
+      <section className="py-24 px-6 bg-white reveal-up" data-reveal data-testid="gallery-section">
         <div className="max-w-7xl mx-auto">
           <h2
-            className="text-3xl sm:text-4xl font-bold tracking-tight uppercase mb-12 text-center"
+            className="text-3xl sm:text-4xl font-bold tracking-tight uppercase mb-12 text-center reveal-up"
+            data-reveal
             style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
           >
             Our Work
@@ -100,8 +101,9 @@ export default function Landing() {
               <div
                 key={idx}
                 data-testid={`gallery-item-${idx}`}
-                className="border-2 border-black bg-white overflow-hidden transform hover:-translate-y-1 transition-transform duration-150"
-                style={{ boxShadow: '4px 4px 0px #0A0A0A' }}
+                className="border-2 border-black bg-white overflow-hidden transform hover:-translate-y-1 transition-transform duration-150 reveal-up"
+                data-reveal
+                style={{ boxShadow: '4px 4px 0px #0A0A0A', '--reveal-delay': `${idx * 70}ms` }}
               >
                 <img src={img.url} alt={img.title} className="w-full h-64 object-cover" />
                 <div className="p-4 bg-[#F4F4F5]">
@@ -114,7 +116,7 @@ export default function Landing() {
       </section>
 
       {/* Contact Info */}
-      <section className="py-24 px-6 bg-[#0A0A0A] text-white" data-testid="contact-section">
+      <section className="py-24 px-6 bg-[#0A0A0A] text-white reveal-up" data-reveal data-testid="contact-section">
         <div className="max-w-4xl mx-auto text-center">
           <h2
             className="text-3xl sm:text-4xl font-bold tracking-tight uppercase mb-12"

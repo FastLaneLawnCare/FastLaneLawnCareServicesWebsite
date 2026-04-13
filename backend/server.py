@@ -368,7 +368,7 @@ class PaymentSessionCreate(BaseModel):
     payment_type: str
 
 class UserProfileUpdate(BaseModel):
-    name: str
+    name: Optional[str] = None
     phone: Optional[str] = None
     house_number: Optional[str] = None
     street_name: Optional[str] = None
@@ -581,7 +581,7 @@ async def refresh_auth(request: Request, response: Response):
 async def update_profile(profile_data: UserProfileUpdate, request: Request):
     user = await get_current_user(request)
 
-    normalized_name = profile_data.name.strip()
+    normalized_name = (profile_data.name or "").strip() or (user.get("name") or "").strip()
     normalized_phone = (profile_data.phone or "").strip() or None
     normalized_house_number = (profile_data.house_number or "").strip() or None
     normalized_street_name = (profile_data.street_name or "").strip() or None
@@ -589,7 +589,7 @@ async def update_profile(profile_data: UserProfileUpdate, request: Request):
     normalized_city = (profile_data.city or "").strip() or None
     normalized_zip_code = (profile_data.zip_code or "").strip() or None
     if not normalized_name:
-        raise HTTPException(status_code=400, detail="Name is required")
+        raise HTTPException(status_code=400, detail="Name is required before saving profile")
 
     await db.users.update_one(
         {"user_id": user["user_id"]},
