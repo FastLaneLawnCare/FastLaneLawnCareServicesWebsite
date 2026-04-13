@@ -113,27 +113,14 @@ async def get_me(request: Request):
 async def start_stripe_test(request: Request):
     import stripe, os
 
-    stripe.api_key = os.getenv("STRIPE_API_KEY")
+    stripe.api_key = "sk_test_51TJf12D9yJO9MAq2k635C8mYV3MBSMN9K9ZCLT1ArA9o0AIVOrNZbG2QivBcijWJvKrrBNeZLsf83MsS4sqZ9VB800hCIwfqoY"
 
     host_url = "https://api.fastlanelawn.com"  # hardcode for reliability
 
     session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        mode="payment",
-        line_items=[
-            {
-                "price_data": {
-                    "currency": "usd",
-                    "product_data": {
-                        "name": "Test Payment",
-                    },
-                    "unit_amount": 5000,  # $50.00
-                },
-                "quantity": 1,
-            }
-        ],
-        success_url=f"{host_url}/booking-success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{host_url}/booking",
+       success_url="https://example.com/success",
+       line_items=[{"price": "price_1MotwRLkdIwHu7ixYcPLm5uZ", "quantity": 2}],
+       mode="payment",
     )
 
     return {
