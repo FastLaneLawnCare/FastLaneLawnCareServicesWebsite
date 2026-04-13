@@ -62,14 +62,6 @@ bookings_router = APIRouter(prefix="/bookings")
 payments_router.include_router(stripe_router)
 payments_router.include_router(paypal_router)
 
-# Attach main feature routers
-api_router.include_router(auth_router)
-api_router.include_router(payments_router)
-api_router.include_router(bookings_router)
-
-# Attach everything to app
-app.include_router(api_router)
-
 # define routes here...
 @api_router.get("/test")
 async def test():
@@ -1027,6 +1019,14 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
+        
+# Attach main feature routers
+api_router.include_router(auth_router)
+api_router.include_router(payments_router)
+api_router.include_router(bookings_router)
+
+# Attach everything to app
+app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
