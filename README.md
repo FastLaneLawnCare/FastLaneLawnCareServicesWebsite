@@ -180,6 +180,9 @@ DB_NAME=fastlanelawn
 JWT_SECRET=your_secret_key_here
 FRONTEND_URL=https://fastlanesite.vercel.app/
 ENVIRONMENT=production
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=Fast Lane Lawn Care <no-reply@mail.fastlanelawn.com>
+OWNER_EMAIL=owner@fastlanelawn.com
 ```
 
 **Frontend (.env.local or Vercel environment settings)**:
@@ -232,6 +235,9 @@ vercel deploy --prod
 | `ENVIRONMENT` | Backend | Cookie security flag | `production` or `development` |
 | `STRIPE_API_KEY` | Backend | Stripe payments (optional) | `sk_test_xxxx` |
 | `PAYPAL_CLIENT_ID` | Backend | PayPal (optional) | `xxxx` |
+| `RESEND_API_KEY` | Backend | Resend email API key | `re_xxxx` |
+| `RESEND_FROM_EMAIL` | Backend | Sender email identity | `no-reply@mail.fastlanelawn.com` |
+| `OWNER_EMAIL` | Backend | Owner notification inbox | `owner@fastlanelawn.com` |
 | `ADMIN_EMAIL` | Backend | Initial admin account | `admin@fastlanelawn.com` |
 | `ADMIN_PASSWORD` | Backend | Initial admin password | `secure_password` |
 ---

@@ -107,6 +107,117 @@ logger = logging.getLogger(__name__)
 
 # ==================== MODELS ====================
 
+def send_resend_email(to_email: str, subject: str, html: str) -> None:
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if not resend_api_key:
+        logger.warning("RESEND_API_KEY is not configured; skipping email send.")
+        return
+
+    sender_email = os.environ.get("RESEND_FROM_EMAIL", "Fast Lane Lawn Care <no-reply@mail.fastlanelawn.com>")
+
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {resend_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": sender_email,
+                "to": [to_email],
+                "subject": subject,
+                "html": html,
+            },
+            timeout=10,
+        )
+        if response.status_code >= 400:
+            logger.error("Resend email failed (%s): %s", response.status_code, response.text)
+    except Exception as email_error:
+        logger.error("Resend email exception: %s", email_error)
+
+
+def send_booking_emails(booking_doc: dict) -> None:
+    owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
+    customer_email = booking_doc.get("email")
+
+    if customer_email:
+        send_resend_email(
+            customer_email,
+            "Booking Received - Fast Lane Lawn Care",
+            f"""
+            <h2>Booking Confirmed</h2>
+            <p>Hi {booking_doc.get('name', 'Customer')},</p>
+            <p>We received your booking request.</p>
+            <ul>
+              <li><strong>Booking ID:</strong> {booking_doc.get('booking_id')}</li>
+              <li><strong>Date:</strong> {booking_doc.get('date')}</li>
+              <li><strong>Time:</strong> {booking_doc.get('time')}</li>
+              <li><strong>Address:</strong> {booking_doc.get('address')}</li>
+              <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
+              <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
+            </ul>
+            <p>We will follow up soon.</p>
+            """,
+        )
+
+    if owner_email:
+        send_resend_email(
+            owner_email,
+            f"New Booking: {booking_doc.get('booking_id')}",
+            f"""
+            <h2>New Booking Submitted</h2>
+            <ul>
+              <li><strong>Booking ID:</strong> {booking_doc.get('booking_id')}</li>
+              <li><strong>Name:</strong> {booking_doc.get('name')}</li>
+              <li><strong>Email:</strong> {booking_doc.get('email')}</li>
+              <li><strong>Phone:</strong> {booking_doc.get('phone')}</li>
+              <li><strong>Date:</strong> {booking_doc.get('date')}</li>
+              <li><strong>Time:</strong> {booking_doc.get('time')}</li>
+              <li><strong>Address:</strong> {booking_doc.get('address')}</li>
+              <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
+              <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
+            </ul>
+            """,
+        )
+
+
+def send_quote_emails(quote_doc: dict) -> None:
+    owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
+    customer_email = quote_doc.get("email")
+
+    if customer_email:
+        send_resend_email(
+            customer_email,
+            "Quote Request Received - Fast Lane Lawn Care",
+            f"""
+            <h2>Quote Request Received</h2>
+            <p>Hi {quote_doc.get('name', 'Customer')},</p>
+            <p>We received your quote request and will get back to you shortly.</p>
+            <ul>
+              <li><strong>Quote ID:</strong> {quote_doc.get('quote_id')}</li>
+              <li><strong>Service Type:</strong> {quote_doc.get('service_type')}</li>
+              <li><strong>Property Size:</strong> {quote_doc.get('property_size')}</li>
+            </ul>
+            """,
+        )
+
+    if owner_email:
+        send_resend_email(
+            owner_email,
+            f"New Quote Request: {quote_doc.get('quote_id')}",
+            f"""
+            <h2>New Quote Request Submitted</h2>
+            <ul>
+              <li><strong>Quote ID:</strong> {quote_doc.get('quote_id')}</li>
+              <li><strong>Name:</strong> {quote_doc.get('name')}</li>
+              <li><strong>Email:</strong> {quote_doc.get('email')}</li>
+              <li><strong>Phone:</strong> {quote_doc.get('phone')}</li>
+              <li><strong>Service Type:</strong> {quote_doc.get('service_type')}</li>
+              <li><strong>Property Size:</strong> {quote_doc.get('property_size')}</li>
+            </ul>
+            """,
+        )
+
 class User(BaseModel):
     user_id: str
     email: str
@@ -452,6 +563,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
     }
     
     await db.bookings.insert_one(booking_doc)
+    send_booking_emails(booking_doc)
     booking_doc.pop("_id", None)
     return booking_doc
 
@@ -524,6 +636,7 @@ async def create_quote(quote_data: QuoteCreate, request: Request):
     }
     
     await db.quotes.insert_one(quote_doc)
+    send_quote_emails(quote_doc)
     quote_doc.pop("_id", None)
     return quote_doc
 
