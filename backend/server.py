@@ -50,15 +50,15 @@ async def test():
     return {"message": "API is working"}
 
 @auth_router.post("/registertest")
-async def register():
+async def registertest():
     return {"message": "register route works"}
 
 @auth_router.post("/logintest")
-async def login():
+async def logintest():
     return {"message": "login route works"}
 
 @auth_router.get("/metest")
-async def me():
+async def metest():
     return {"message": "me route works"}
 
 # ✅ THEN include router
