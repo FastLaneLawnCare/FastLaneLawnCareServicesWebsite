@@ -266,15 +266,7 @@ vercel deploy --prod
 - [ ] Check browser DevTools → Application → Cookies
 - [ ] Cookies must have secure=true flag in HTTPS
 ---
-## LOGINS
-- MongoDB
-> Username: fastlanelawnbusiness_db_user
-> Password: FastLaneAdmin123
-
-- CONFIG
-> FRONTEND_URL: https://fastlanesite.vercel.app/
 
 ## API
 - Test API (Check if the API is Online)
-om
 > https://api.fastlanelawn.com/api/test/
