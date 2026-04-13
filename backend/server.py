@@ -874,7 +874,9 @@ async def startup():
 origins = [
     "https://fastlanelawn.com",       # your custom domain
     "https://www.fastlanelawn.com",   # optional (if you use www)
-    "http://localhost:3000",        # for local development
+    "http://localhost:8000",        # for local development
+    "https://fastlanesite.vercel.app",
+    "https://fastlanelawncareserviceswebsite-production.up.railway.app/",
 ]
 
 app.add_middleware(
