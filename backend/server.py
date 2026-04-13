@@ -65,10 +65,6 @@ async def admindetails():
 async def metest():
     return {"message": "me route works"}
 
-# ✅ THEN include router
-api_router.include_router(auth_router)
-app.include_router(api_router)
-
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 # Configure logging
@@ -909,6 +905,10 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
+
+# ✅ THEN include router
+api_router.include_router(auth_router)
+app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
