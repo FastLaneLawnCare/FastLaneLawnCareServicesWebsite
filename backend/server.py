@@ -49,13 +49,17 @@ auth_router = APIRouter(prefix="/auth")
 async def test():
     return {"message": "API is working"}
 
-@auth_router.post("/registertest")
+@auth_router.get("/registertest")
 async def registertest():
     return {"message": "register route works"}
 
-@auth_router.post("/logintest")
+@auth_router.get("/logintest")
 async def logintest():
     return {"message": "login route works"}
+
+@auth_router.get("/admindetails")
+async def admindetails():
+    return {"message": "Email: admin@fastlanelawn.com - Password: admin123"}
 
 @auth_router.get("/metest")
 async def metest():
