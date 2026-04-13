@@ -76,6 +76,10 @@ async def test():
 async def test():
     return {"message": "API is working"}
 
+@payments_router.get("/test")
+async def paymentstest():
+    return {"message": "Payments API is working ✅"}
+
 @auth_router.get("/registertest")
 async def registertest():
     return {"message": "register route works"}
