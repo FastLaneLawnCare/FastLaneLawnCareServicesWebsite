@@ -32,10 +32,8 @@ api_router = APIRouter(prefix="/api")
 # Configure CORS
 origins = [
     "https://fastlanelawn.com",       # your custom domain
-    "https://www.fastlanelawn.com",   # optional (if you use www)
     "https://api.fastlanelawn.com",   # API domain
     "http://localhost:8000",          # for local development
-    "http://localhost:3000",          # frontend local development
 ]
 
 app.add_middleware(
