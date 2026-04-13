@@ -17,6 +17,8 @@ from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
 import requests
+import stripe
+stripe.api_key = os.environ.get("STRIPE_API_KEY")
 
 # PayPal (your existing)
 from paypalcheckoutsdk.core import SandboxEnvironment, PayPalHttpClient
@@ -58,12 +60,19 @@ stripe_router = APIRouter(prefix="/stripe")
 paypal_router = APIRouter(prefix="/paypal")
 bookings_router = APIRouter(prefix="/bookings")
 
-# Attach payment sub-routers
-payments_router.include_router(stripe_router)
-payments_router.include_router(paypal_router)
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(bookings_router, prefix="/api/bookings")
+app.include_router(payments_router, prefix="/api/payments")
+
+payments_router.include_router(stripe_router, prefix="/stripe")
+payments_router.include_router(paypal_router, prefix="/paypal")
 
 # define routes here...
 @api_router.get("/test")
+async def test():
+    return {"message": "API is working"}
+
+@api_router.get("/payments/stripe")
 async def test():
     return {"message": "API is working"}
 
@@ -96,7 +105,7 @@ async def get_me(request: Request):
     user = await get_current_user(request)
     return user
 
-@stripe_router.get("/startStripeTest")
+@stripe_router.post("/startStripeTest")
 async def startStripeTest():
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
@@ -656,9 +665,6 @@ async def get_analytics(request: Request):
     }
 
 # ==================== PAYMENT ENDPOINTS ====================
-
-import stripe
-stripe.api_key = os.environ.get("STRIPE_API_KEY")
 
 @stripe_router.post("/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
