@@ -41,31 +41,32 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# ✅ ADD MIDDLEWARE FIRST
+# ✅ 1. ADD MIDDLEWARE FIRST
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fastlanelawn.com"],
+    allow_origins=[
+        "https://fastlanelawn.com",
+        "https://www.fastlanelawn.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Root API router
+# ✅ 2. DEFINE ROUTERS
 api_router = APIRouter(prefix="/api")
 
-# Sub routers
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
-stripe_router = APIRouter(prefix="/stripe")
-paypal_router = APIRouter(prefix="/paypal")
 bookings_router = APIRouter(prefix="/bookings")
 
-app.include_router(auth_router, prefix="/api/auth")
-app.include_router(bookings_router, prefix="/api/bookings")
-app.include_router(payments_router, prefix="/api/payments")
+# ✅ 3. NEST ROUTERS
+api_router.include_router(auth_router)
+api_router.include_router(bookings_router)
+api_router.include_router(payments_router)
 
-payments_router.include_router(stripe_router, prefix="/stripe")
-payments_router.include_router(paypal_router, prefix="/paypal")
+# ✅ 4. INCLUDE MAIN ROUTER
+app.include_router(api_router)
 
 # define routes here...
 @api_router.get("/test")
