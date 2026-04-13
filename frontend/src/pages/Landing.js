@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Phone, Envelope, MapPin } from '@phosphor-icons/react';
 
+import lawn1 from '../assets/images/Lawn1.jpg';
+import lawn2 from '../assets/images/Lawn2.jpg';
+import lawn3 from '../assets/images/Lawn3.jpg';
+import lawn4 from '../assets/images/Lawn4.jpg';
+import lawn5 from '../assets/images/Lawn5.jpg';
+import yard from '../assets/images/Yard.jpg';
+
 export default function Landing() {
   const navigate = useNavigate();
 
@@ -81,11 +88,12 @@ export default function Landing() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { url: 'https://via.placeholder.com/400x300/90EE90/000000?text=Lawn+Service', title: 'Striped Perfection' },
-              { url: 'https://via.placeholder.com/400x300/32CD32/000000?text=Yard+Work', title: 'Yard Transformation' },
-              { url: 'https://via.placeholder.com/400x300/228B22/000000?text=Landscaping', title: 'Fresh Cut Lawns' },
-              { url: 'https://via.placeholder.com/400x300/006400/000000?text=Mowing', title: 'Precision Mowing' },
-              { url: 'https://via.placeholder.com/400x300/008000/000000?text=Maintenance', title: 'Crisp Clean Cuts' }
+              { url: lawn1, title: 'Striped Perfection' },
+              { url: lawn2, title: 'Yard Cleanup' },
+              { url: lawn3, title: 'Fresh Cut Lawns' },
+              { url: lawn4, title: 'Precision Mowing' },
+              { url: lawn5, title: 'Crisp Clean Cuts' },
+              { url: yard, title: 'Yard Transformation' }
             ].map((img, idx) => (
               <div
                 key={idx}
