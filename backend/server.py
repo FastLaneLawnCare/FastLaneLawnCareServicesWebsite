@@ -26,24 +26,42 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create the main app
+
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
-api_router = APIRouter(prefix="/api")
 
-# Configure CORS
-origins = [
-    "https://fastlanelawn.com",       # your custom domain
-    "https://api.fastlanelawn.com",   # API domain
-    "http://localhost:8000",          # for local development
-]
-
+# ✅ ADD MIDDLEWARE FIRST
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["https://fastlanelawn.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+api_router = APIRouter(prefix="/api")
+auth_router = APIRouter(prefix="/auth")
+
+# define routes here...
+@api_router.get("/test")
+async def test():
+    return {"message": "API is working"}
+
+@auth_router.post("/registertest")
+async def register():
+    return {"message": "register route works"}
+
+@auth_router.post("/logintest")
+async def login():
+    return {"message": "login route works"}
+
+@auth_router.get("/metest")
+async def me():
+    return {"message": "me route works"}
+
+# ✅ THEN include router
 app.include_router(api_router)
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
