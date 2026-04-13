@@ -29,6 +29,27 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# Configure CORS
+origins = [
+    "https://fastlanelawn.com",       # your custom domain
+    "https://www.fastlanelawn.com",   # optional (if you use www)
+    "https://api.fastlanelawn.com",   # API domain
+    "http://localhost:8000",          # for local development
+    "http://localhost:3000",          # frontend local development
+    "https://fastlanesite.vercel.app",
+    "https://fastlanelawncareserviceswebsite-production.up.railway.app/",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_router)
+
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 # Configure logging
@@ -868,28 +889,7 @@ async def startup():
 - POST /api/auth/login
 - GET /api/auth/me
 - POST /api/auth/logout
-- POST /api/auth/google/session
 """)
-
-origins = [
-    "https://fastlanelawn.com",       # your custom domain
-    "https://www.fastlanelawn.com",   # optional (if you use www)
-    "https://api.fastlanelawn.com",   # API domain
-    "http://localhost:8000",        # for local development
-    "http://localhost:3000",        # frontend local development
-    "https://fastlanesite.vercel.app",
-    "https://fastlanelawncareserviceswebsite-production.up.railway.app/",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
