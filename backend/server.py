@@ -46,6 +46,20 @@ api_router = APIRouter(prefix="/api")
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
+origins = [
+    "https://fastlanelawn.com",       # your custom domain
+    "https://www.fastlanelawn.com",   # optional (if you use www)
+    "http://localhost:3000",        # for local development
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
