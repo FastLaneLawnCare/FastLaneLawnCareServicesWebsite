@@ -88,7 +88,7 @@ async def logintest():
 
 @auth_router.get("/admindetails")
 async def admindetails():
-    return {"message": "Email: admin@fastlanelawn.com - Password: admin123"}
+    return {"message": "CEO login -> Email: admin@fastlanelawn.com - Password: admin123"}
 
 @auth_router.get("/metest")
 async def metest():
@@ -101,6 +101,12 @@ async def get_me(request: Request):
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 MIN_BOOKING_DAYS_AHEAD = 2
+ROLE_HIERARCHY = {
+    "customer": 0,
+    "staff": 1,
+    "manager": 2,
+    "ceo": 3
+}
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -230,6 +236,7 @@ class User(BaseModel):
     apt_number: Optional[str] = None
     city: Optional[str] = None
     zip_code: Optional[str] = None
+    hourly_rate: Optional[float] = None
     created_at: str
 
 class UserCreate(BaseModel):
@@ -318,6 +325,12 @@ class StaffUpdate(BaseModel):
     hours_worked: float
     performance_score: Optional[int] = None
 
+class StaffRoleUpdate(BaseModel):
+    role: str
+
+class StaffPayUpdate(BaseModel):
+    hourly_rate: float
+
 class PaymentSessionCreate(BaseModel):
     booking_id: str
     payment_type: str
@@ -405,8 +418,26 @@ async def get_current_user(request: Request) -> dict:
 
 async def require_admin(request: Request) -> dict:
     user = await get_current_user(request)
-    if user.get("role") != "admin":
+    if user.get("role") not in {"ceo", "manager"}:
         raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
+def normalize_role(role: Optional[str]) -> str:
+    return (role or "customer").strip().lower()
+
+def role_level(role: Optional[str]) -> int:
+    return ROLE_HIERARCHY.get(normalize_role(role), 0)
+
+async def require_role_at_least(request: Request, minimum_role: str) -> dict:
+    user = await get_current_user(request)
+    if role_level(user.get("role")) < role_level(minimum_role):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return user
+
+async def require_ceo(request: Request) -> dict:
+    user = await get_current_user(request)
+    if normalize_role(user.get("role")) != "ceo":
+        raise HTTPException(status_code=403, detail="CEO access required")
     return user
 
 # ==================== STORAGE HELPERS ====================
@@ -607,7 +638,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
 async def get_bookings(request: Request):
     user = await get_current_user(request)
     
-    if user.get("role") == "admin":
+    if role_level(user.get("role")) >= role_level("manager"):
         bookings = await db.bookings.find({}, {"_id": 0}).to_list(1000)
     else:
         bookings = await db.bookings.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(1000)
@@ -641,7 +672,7 @@ async def get_booking(booking_id: str):
 
 @api_router.patch("/bookings/{booking_id}")
 async def update_booking(booking_id: str, update_data: dict, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     result = await db.bookings.update_one(
         {"booking_id": booking_id},
@@ -655,7 +686,7 @@ async def update_booking(booking_id: str, update_data: dict, request: Request):
 
 @api_router.delete("/bookings/{booking_id}")
 async def delete_booking(booking_id: str, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     result = await db.bookings.delete_one({"booking_id": booking_id})
     
@@ -705,7 +736,7 @@ async def upload_quote_photo(quote_id: str, file: UploadFile = File(...)):
 
 @api_router.get("/quotes", response_model=List[Quote])
 async def get_quotes(request: Request):
-    await require_admin(request)
+    await require_role_at_least(request, "manager")
     quotes = await db.quotes.find({}, {"_id": 0}).to_list(1000)
     return quotes
 
@@ -725,7 +756,7 @@ async def get_my_quotes(request: Request):
 
 @api_router.patch("/quotes/{quote_id}")
 async def update_quote(quote_id: str, update_data: QuoteUpdate, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     result = await db.quotes.update_one(
         {"quote_id": quote_id},
@@ -739,7 +770,7 @@ async def update_quote(quote_id: str, update_data: QuoteUpdate, request: Request
 
 @api_router.delete("/quotes/{quote_id}")
 async def delete_quote(quote_id: str, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     result = await db.quotes.delete_one({"quote_id": quote_id})
     
@@ -754,7 +785,7 @@ async def delete_quote(quote_id: str, request: Request):
 
 @api_router.post("/invoices", response_model=Invoice)
 async def create_invoice(invoice_data: InvoiceCreate, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     invoice_id = f"invoice_{uuid.uuid4().hex[:12]}"
     
@@ -776,7 +807,7 @@ async def create_invoice(invoice_data: InvoiceCreate, request: Request):
 
 @api_router.get("/invoices", response_model=List[Invoice])
 async def get_invoices(request: Request):
-    await require_admin(request)
+    await require_role_at_least(request, "manager")
     invoices = await db.invoices.find({}, {"_id": 0}).to_list(1000)
     return invoices
 
@@ -791,7 +822,7 @@ async def get_my_invoices(request: Request):
 
 @api_router.delete("/invoices/{invoice_id}")
 async def delete_invoice(invoice_id: str, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     result = await db.invoices.delete_one({"invoice_id": invoice_id})
     
@@ -804,8 +835,8 @@ async def delete_invoice(invoice_id: str, request: Request):
 
 @api_router.get("/staff")
 async def get_staff(request: Request):
-    await require_admin(request)
-    staff = await db.users.find({"role": {"$in": ["admin", "staff"]}}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    await require_role_at_least(request, "manager")
+    staff = await db.users.find({"role": {"$in": ["ceo", "manager", "staff"]}}, {"_id": 0, "password_hash": 0}).to_list(1000)
     
     staff_with_metrics = []
     for s in staff:
@@ -829,14 +860,17 @@ async def get_staff(request: Request):
             **s,
             "completed_jobs": len(completed),
             "total_hours": round(total_hours, 2),
-            "avg_performance_score": round(avg_score, 1)
+            "avg_performance_score": round(avg_score, 1),
+            "jobs_per_hour": round((len(completed) / total_hours), 2) if total_hours > 0 else 0,
+            "hourly_rate": float(s.get("hourly_rate", 0) or 0),
+            "estimated_earnings": round(total_hours * float(s.get("hourly_rate", 0) or 0), 2)
         })
     
     return staff_with_metrics
 
 @api_router.post("/staff/work-log")
 async def log_staff_work(work_data: StaffUpdate, request: Request):
-    await require_admin(request)
+    await require_ceo(request)
     
     booking = await db.bookings.find_one({"booking_id": work_data.booking_id})
     if not booking:
@@ -855,11 +889,79 @@ async def log_staff_work(work_data: StaffUpdate, request: Request):
     
     return {"message": "Work log created"}
 
+@api_router.get("/staff/me")
+async def get_my_staff_metrics(request: Request):
+    user = await require_role_at_least(request, "staff")
+    if normalize_role(user.get("role")) not in {"staff", "manager", "ceo"}:
+        raise HTTPException(status_code=403, detail="Staff access required")
+
+    bookings = await db.bookings.find({"staff_id": user["user_id"]}).to_list(1000)
+    completed = [b for b in bookings if b.get("booking_status") == "completed"]
+    work_logs = await db.staff_work_logs.find({"staff_id": user["user_id"]}).to_list(1000)
+
+    total_hours = sum(log.get("hours_worked", 0) for log in work_logs)
+    scored_logs = [log.get("performance_score") for log in work_logs if log.get("performance_score") is not None]
+    avg_score = (sum(scored_logs) / len(scored_logs)) if scored_logs else 0
+    hourly_rate = float(user.get("hourly_rate") or 0)
+
+    return {
+        "user_id": user["user_id"],
+        "name": user.get("name"),
+        "role": normalize_role(user.get("role")),
+        "hourly_rate": hourly_rate,
+        "completed_jobs": len(completed),
+        "total_hours": round(total_hours, 2),
+        "avg_performance_score": round(avg_score, 1),
+        "jobs_per_hour": round((len(completed) / total_hours), 2) if total_hours > 0 else 0,
+        "estimated_earnings": round(total_hours * hourly_rate, 2)
+    }
+
+@api_router.patch("/staff/{staff_user_id}/hourly-rate")
+async def update_staff_hourly_rate(staff_user_id: str, pay_data: StaffPayUpdate, request: Request):
+    acting_user = await require_role_at_least(request, "manager")
+    acting_role = normalize_role(acting_user.get("role"))
+    if acting_role not in {"manager", "ceo"}:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+    target_user = await db.users.find_one({"user_id": staff_user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Staff user not found")
+
+    target_role = normalize_role(target_user.get("role"))
+    if target_role != "staff":
+        raise HTTPException(status_code=403, detail="Hourly rate can only be updated for staff")
+
+    await db.users.update_one(
+        {"user_id": staff_user_id},
+        {"$set": {"hourly_rate": float(pay_data.hourly_rate)}}
+    )
+    return {"message": "Staff hourly rate updated"}
+
+@api_router.patch("/staff/{staff_user_id}/role")
+async def update_staff_role(staff_user_id: str, role_data: StaffRoleUpdate, request: Request):
+    await require_ceo(request)
+    target_role = normalize_role(role_data.role)
+    if target_role not in {"manager", "staff"}:
+        raise HTTPException(status_code=400, detail="Role must be manager or staff")
+
+    target_user = await db.users.find_one({"user_id": staff_user_id})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if normalize_role(target_user.get("role")) == "ceo":
+        raise HTTPException(status_code=403, detail="Cannot change CEO role")
+
+    await db.users.update_one(
+        {"user_id": staff_user_id},
+        {"$set": {"role": target_role}}
+    )
+    return {"message": "User role updated"}
+
 # ==================== ANALYTICS ENDPOINTS ====================
 
 @api_router.get("/analytics")
 async def get_analytics(request: Request):
-    await require_admin(request)
+    await require_role_at_least(request, "manager")
     
     total_bookings = await db.bookings.count_documents({})
     total_customers = await db.users.count_documents({"role": "customer"})
@@ -1162,16 +1264,25 @@ async def startup():
             "email": admin_email,
             "password_hash": hashed,
             "name": "Admin",
-            "role": "admin",
+            "role": "ceo",
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         logger.info(f"Admin user created: {admin_email}")
-    elif not verify_password(admin_password, existing["password_hash"]):
-        await db.users.update_one(
-            {"email": admin_email},
-            {"$set": {"password_hash": hash_password(admin_password)}}
-        )
-        logger.info("Admin password updated")
+    else:
+        updates = {}
+        if normalize_role(existing.get("role")) == "admin":
+            updates["role"] = "ceo"
+        if not verify_password(admin_password, existing["password_hash"]):
+            updates["password_hash"] = hash_password(admin_password)
+        if updates:
+            await db.users.update_one(
+                {"email": admin_email},
+                {"$set": updates}
+            )
+            if "password_hash" in updates:
+                logger.info("Admin password updated")
+            if "role" in updates:
+                logger.info("Admin role migrated to CEO")
     
     os.makedirs("/app/memory", exist_ok=True)
     with open("/app/memory/test_credentials.md", "w") as f:
@@ -1180,7 +1291,7 @@ async def startup():
 ## Admin Account
 - Email: {admin_email}
 - Password: {admin_password}
-- Role: admin
+- Role: ceo
 
 ## Test Customer (Create via registration)
 - Use registration form to create test customer accounts

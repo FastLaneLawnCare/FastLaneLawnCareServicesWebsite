@@ -159,12 +159,12 @@ export default function MyAccount() {
             >
               New Booking
             </button>
-            {user?.role === 'admin' && (
+            {['ceo', 'manager', 'staff'].includes((user?.role || '').toLowerCase()) && (
               <button
                 onClick={() => navigate('/admin')}
                 className="px-4 py-2 bg-black text-[#CCFF00] border-2 border-black font-bold uppercase text-sm hover:bg-[#CCFF00] hover:text-black transition"
               >
-                Admin Dashboard
+                Staff Dashboard
               </button>
             )}
             <button

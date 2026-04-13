@@ -11,12 +11,20 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useContext(AuthContext);
+  const role = (user?.role || '').toLowerCase();
+  const isCEO = role === 'ceo';
+  const isManager = role === 'manager';
+  const isStaff = role === 'staff';
+  const canViewAdminData = isCEO || isManager;
   const [analytics, setAnalytics] = useState(null);
   const [quotes, setQuotes] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [myStaffMetrics, setMyStaffMetrics] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hourlyRateDrafts, setHourlyRateDrafts] = useState({});
+  const [roleDrafts, setRoleDrafts] = useState({});
 
   // Invoice form state
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
@@ -28,18 +36,24 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'admin')) {
+    if (!authLoading && (!user || !['ceo', 'manager', 'staff'].includes((user.role || '').toLowerCase()))) {
       navigate('/login');
       return;
     }
 
-    if (user && user.role === 'admin') {
+    if (user) {
       fetchData();
     }
   }, [user, authLoading, navigate]);
 
   const fetchData = async () => {
     try {
+      if (isStaff) {
+        const { data } = await axios.get(`${API}/staff/me`, { withCredentials: true });
+        setMyStaffMetrics(data);
+        return;
+      }
+
       const [analyticsRes, quotesRes, bookingsRes, staffRes, invoicesRes] = await Promise.all([
         axios.get(`${API}/analytics`, { withCredentials: true }),
         axios.get(`${API}/quotes`, { withCredentials: true }),
@@ -53,14 +67,22 @@ export default function AdminDashboard() {
       setBookings(bookingsRes.data);
       setStaff(staffRes.data);
       setInvoices(invoicesRes.data);
+      setHourlyRateDrafts(
+        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: member.hourly_rate || 0 }), {})
+      );
+      setRoleDrafts(
+        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: (member.role || 'staff').toLowerCase() }), {})
+      );
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
   const handleQuoteUpdate = async (quoteId, status, message) => {
+    if (!isCEO) return;
     try {
       await axios.patch(
         `${API}/quotes/${quoteId}`,
@@ -75,6 +97,7 @@ export default function AdminDashboard() {
   };
 
   const handleQuoteDelete = async (quoteId) => {
+    if (!isCEO) return;
     if (!window.confirm('Are you sure you want to delete this quote?')) return;
     
     try {
@@ -87,6 +110,7 @@ export default function AdminDashboard() {
   };
 
   const handleBookingDelete = async (bookingId) => {
+    if (!isCEO) return;
     if (!window.confirm('Are you sure you want to delete this booking?')) return;
     
     try {
@@ -99,6 +123,7 @@ export default function AdminDashboard() {
   };
 
   const handleInvoiceDelete = async (invoiceId) => {
+    if (!isCEO) return;
     if (!window.confirm('Are you sure you want to delete this invoice?')) return;
     
     try {
@@ -111,6 +136,7 @@ export default function AdminDashboard() {
   };
 
   const handleCreateInvoice = async (e) => {
+    if (!isCEO) return;
     e.preventDefault();
     const total = invoiceForm.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
@@ -138,6 +164,7 @@ export default function AdminDashboard() {
   };
 
   const addInvoiceItem = () => {
+    if (!isCEO) return;
     setInvoiceForm({
       ...invoiceForm,
       items: [...invoiceForm.items, { description: '', quantity: 1, price: 0 }]
@@ -145,10 +172,46 @@ export default function AdminDashboard() {
   };
 
   const removeInvoiceItem = (index) => {
+    if (!isCEO) return;
     setInvoiceForm({
       ...invoiceForm,
       items: invoiceForm.items.filter((_, i) => i !== index)
     });
+  };
+
+  const handleHourlyRateUpdate = async (member) => {
+    const value = parseFloat(hourlyRateDrafts[member.user_id]);
+    if (Number.isNaN(value) || value < 0) {
+      toast.error('Please enter a valid hourly rate');
+      return;
+    }
+    try {
+      await axios.patch(
+        `${API}/staff/${member.user_id}/hourly-rate`,
+        { hourly_rate: value },
+        { withCredentials: true }
+      );
+      toast.success('Hourly rate updated');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update hourly rate');
+    }
+  };
+
+  const handleRoleUpdate = async (member) => {
+    const selectedRole = roleDrafts[member.user_id];
+    if (!selectedRole) return;
+    try {
+      await axios.patch(
+        `${API}/staff/${member.user_id}/role`,
+        { role: selectedRole },
+        { withCredentials: true }
+      );
+      toast.success('Role updated');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update role');
+    }
   };
 
   if (authLoading || loading) {
@@ -157,6 +220,56 @@ export default function AdminDashboard() {
         <div className="text-center">
           <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#CCFF00] border-r-transparent"></div>
           <p className="mt-4 font-semibold uppercase">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isStaff && myStaffMetrics) {
+    return (
+      <div className="min-h-screen bg-white">
+        <header className="border-b-2 border-black bg-white">
+          <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
+                Staff Dashboard
+              </h1>
+              <p className="text-sm text-[#71717A]">Your performance and earnings summary.</p>
+            </div>
+            <button
+              onClick={() => navigate('/my-account')}
+              className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition"
+            >
+              My Account
+            </button>
+          </div>
+        </header>
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          <div className="border-2 border-black p-6 bg-white">
+            <h2 className="text-2xl font-black uppercase mb-4">{myStaffMetrics.name}</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+              <div>
+                <p className="text-xl font-black">${Number(myStaffMetrics.hourly_rate || 0).toFixed(2)}</p>
+                <p className="text-xs font-semibold uppercase text-[#71717A]">Earnings/Hour</p>
+              </div>
+              <div>
+                <p className="text-xl font-black">{myStaffMetrics.completed_jobs || 0}</p>
+                <p className="text-xs font-semibold uppercase text-[#71717A]">Completed Jobs</p>
+              </div>
+              <div>
+                <p className="text-xl font-black">{myStaffMetrics.total_hours || 0}h</p>
+                <p className="text-xs font-semibold uppercase text-[#71717A]">Total Hours</p>
+              </div>
+              <div>
+                <p className="text-xl font-black">{myStaffMetrics.jobs_per_hour || 0}</p>
+                <p className="text-xs font-semibold uppercase text-[#71717A]">Jobs/Hour</p>
+              </div>
+              <div>
+                <p className="text-xl font-black">{myStaffMetrics.avg_performance_score || 0}</p>
+                <p className="text-xs font-semibold uppercase text-[#71717A]">Avg Performance</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -172,9 +285,11 @@ export default function AdminDashboard() {
               style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
               data-testid="admin-dashboard-heading"
             >
-              Admin Dashboard
+              {isCEO ? 'CEO Dashboard' : 'Manager Dashboard'}
             </h1>
-            <p className="text-sm text-[#71717A]">Manage bookings, quotes, staff, invoices, and site operations.</p>
+            <p className="text-sm text-[#71717A]">
+              {isCEO ? 'Full control access, including role assignment and edits.' : 'Read-only admin data with staff pay management.'}
+            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button
@@ -195,6 +310,8 @@ export default function AdminDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {canViewAdminData && (
+        <>
         {/* Analytics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" data-testid="analytics-section">
           {[
@@ -257,13 +374,14 @@ export default function AdminDashboard() {
               <button
                 data-testid="new-invoice-btn"
                 onClick={() => setShowInvoiceForm(!showInvoiceForm)}
+                disabled={!isCEO}
                 className="px-6 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase hover:bg-black hover:text-[#CCFF00] transition"
               >
                 + New Invoice
               </button>
             </div>
 
-            {showInvoiceForm && (
+            {showInvoiceForm && isCEO && (
               <form onSubmit={handleCreateInvoice} className="border-2 border-black p-6 mb-6 bg-[#F4F4F5]" data-testid="invoice-form">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -406,6 +524,7 @@ export default function AdminDashboard() {
                   </div>
                   <button
                     onClick={() => handleInvoiceDelete(invoice.invoice_id)}
+                    disabled={!isCEO}
                     className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
                     data-testid={`delete-invoice-${invoice.invoice_id}`}
                   >
@@ -458,7 +577,7 @@ export default function AdminDashboard() {
                       
                       {/* Action Buttons */}
                       <div className="flex gap-2">
-                        {quote.status === 'pending' && (
+                        {isCEO && quote.status === 'pending' && (
                           <>
                             <button
                               data-testid={`approve-quote-${quote.quote_id}`}
@@ -476,7 +595,7 @@ export default function AdminDashboard() {
                             </button>
                           </>
                         )}
-                        {quote.status === 'declined' && (
+                        {isCEO && quote.status === 'declined' && (
                           <button
                             data-testid={`delete-quote-${quote.quote_id}`}
                             onClick={() => handleQuoteDelete(quote.quote_id)}
@@ -486,6 +605,9 @@ export default function AdminDashboard() {
                           </button>
                         )}
                       </div>
+                      {!isCEO && (
+                        <p className="text-xs font-semibold uppercase text-[#71717A]">Managers have read-only access to quotes</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -527,6 +649,7 @@ export default function AdminDashboard() {
                   </div>
                   <button
                     onClick={() => handleBookingDelete(booking.booking_id)}
+                    disabled={!isCEO}
                     className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
                     data-testid={`delete-booking-${booking.booking_id}`}
                   >
@@ -568,11 +691,57 @@ export default function AdminDashboard() {
                       <p className="text-xs font-semibold uppercase text-[#71717A]">Avg Performance</p>
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t-2 border-black pt-4 mt-4">
+                    <div>
+                      <p className="text-sm font-semibold uppercase text-[#71717A] mb-2">Earnings/Hour</p>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={hourlyRateDrafts[member.user_id] ?? 0}
+                        onChange={(e) => setHourlyRateDrafts((current) => ({ ...current, [member.user_id]: e.target.value }))}
+                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        className="w-full h-12 px-4 border-2 border-black"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        onClick={() => handleHourlyRateUpdate(member)}
+                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        className="w-full h-12 px-4 bg-[#CCFF00] border-2 border-black font-bold uppercase disabled:opacity-50"
+                      >
+                        Save Pay Rate
+                      </button>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold uppercase text-[#71717A] mb-2">Role</p>
+                      <div className="flex gap-2">
+                        <select
+                          value={roleDrafts[member.user_id] || (member.role || 'staff').toLowerCase()}
+                          onChange={(e) => setRoleDrafts((current) => ({ ...current, [member.user_id]: e.target.value }))}
+                          disabled={!isCEO || (member.role || '').toLowerCase() === 'ceo'}
+                          className="w-full h-12 px-3 border-2 border-black bg-white uppercase"
+                        >
+                          <option value="staff">Staff</option>
+                          <option value="manager">Manager</option>
+                        </select>
+                        <button
+                          onClick={() => handleRoleUpdate(member)}
+                          disabled={!isCEO || (member.role || '').toLowerCase() === 'ceo'}
+                          className="h-12 px-4 bg-black text-[#CCFF00] border-2 border-black font-bold uppercase disabled:opacity-50"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </TabsContent>
         </Tabs>
+        </>
+        )}
       </div>
     </div>
   );
