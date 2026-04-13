@@ -614,7 +614,7 @@ async def get_analytics(request: Request):
 
 # ==================== PAYMENT ENDPOINTS ====================
 
-@api_router.post("/payments/stripe/create-session")
+@payments_router.post("/stripe/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     if not StripeCheckout:
         raise HTTPException(status_code=503, detail="Stripe integration not available. Please contact support.")
@@ -661,7 +661,7 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
         logger.error(f"Stripe session creation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create payment session: {str(e)}")
 
-@api_router.get("/payments/stripe/status/{session_id}")
+@payments_router.get("/stripe/status/{session_id}")
 async def get_stripe_status(session_id: str):
     if not StripeCheckout:
         raise HTTPException(status_code=503, detail="Stripe integration not available")
@@ -713,7 +713,7 @@ async def stripe_webhook(request: Request):
 
 # ==================== PAYPAL PAYMENT ENDPOINTS ====================
 
-@api_router.post("/payments/paypal/create-order")
+@payments_router.post("/paypal/create-order")
 async def create_paypal_order(payment_data: PaymentSessionCreate, http_request: Request):
     booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
     if not booking:
