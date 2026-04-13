@@ -68,21 +68,29 @@ paypal_router = APIRouter(prefix="/paypal")
 async def test():
     return {"message": "API is working ✅"}
 
-@api_router.get("/payments/stripe")
-async def test():
-    return {"message": "API is working ✅"}
-
 @payments_router.get("/test")
 async def paymentstest():
     return {"message": "Payments API is working ✅"}
 
+@auth_router.get("/test")
+async def authtest():
+    return {"message": "Auth API is working ✅"}
+
+@stripe_router.get("/test")
+async def stripetest():
+    return {"message": "Stripe API is working ✅"}
+
+@paypal_router.get("/test")
+async def paypaltest():
+    return {"message": "PayPal API is working ✅"}
+
 @auth_router.get("/registertest")
 async def registertest():
-    return {"message": "register route works"}
+    return {"message": "register route works ✅"}
 
 @auth_router.get("/logintest")
 async def logintest():
-    return {"message": "login route works"}
+    return {"message": "login route works ✅"}
 
 @auth_router.get("/admindetails")
 async def admindetails():
@@ -90,15 +98,7 @@ async def admindetails():
 
 @auth_router.get("/metest")
 async def metest():
-    return {"message": "me route works"}
-
-@payments_router.get("/stripetest")
-async def stripetest():
-    return {"message": "Stripe API is Online ✅"} 
-
-@payments_router.get("/paypaltest")
-async def paypaltest():
-    return {"message": "PayPal API is Online ✅"}
+    return {"message": "Auth API is working and you are authenticated! ✅"}
 
 @api_router.get("/auth/me")
 async def get_me(request: Request):
