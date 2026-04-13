@@ -34,31 +34,17 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Storage config - Emergent integration (optional)
-STORAGE_URL = os.environ.get("STORAGE_URL", "")
+STORAGE_URL = ""
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY", "")
-APP_NAME = os.environ.get("APP_NAME", "fastlane-lawn")
+APP_NAME = "fastlane-lawn"
 storage_key = None
-use_storage = bool(STORAGE_URL and EMERGENT_KEY)
+use_storage = False
 
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
-
-origins = [
-    "https://fastlanelawn.com",       # your custom domain
-    "https://www.fastlanelawn.com",   # optional (if you use www)
-    "http://localhost:3000",        # for local development
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -1024,14 +1010,16 @@ async def startup():
 - POST /api/auth/google/session
 """)
 
-# Configure CORS - must be added before including router in production
-cors_origins = os.environ.get("FRONTEND_URL", "http://localhost:3000").split(",")
-cors_origins = [origin.strip() for origin in cors_origins]
+origins = [
+    "https://fastlanelawn.com",       # your custom domain
+    "https://www.fastlanelawn.com",   # optional (if you use www)
+    "http://localhost:3000",        # for local development
+]
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=origins,
     allow_credentials=True,
-    allow_origins=cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
