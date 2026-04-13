@@ -34,15 +34,22 @@ self.addEventListener('activate', (event) => {
 
 // Fetch handler
 self.addEventListener('fetch', (event) => {
-  // ✅ IMPORTANT: skip API requests
-  if (event.request.url.includes('/api/')) {
-    return;
-  }
-
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached version or fetch from network
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        // Only cache successful GET responses
+        if (event.request.method === 'GET' && response.status === 200) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request)
+          .then((response) => response || caches.match('/'));
+      })
   );
 });
