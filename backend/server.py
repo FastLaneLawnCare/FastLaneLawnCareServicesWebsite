@@ -62,8 +62,8 @@ async def me():
     return {"message": "me route works"}
 
 # ✅ THEN include router
+api_router.include_router(auth_router)
 app.include_router(api_router)
-app.include_router(auth_router)
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
