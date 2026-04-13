@@ -42,18 +42,15 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[
+    CORSMiddleware,
+    allow_origins=[
         "https://fastlanelawn.com",
-        "https://www.fastlanelawn.com",
-        "https://api.fastlanelawn.com",
-        "https://api.fastlanelawn.com/api/auth/me",
-        "https://api.fastlanelawn.com/api/payments/stripe/create-session"
+        "https://www.fastlanelawn.com"
     ],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
     
 # ✅ 2. DEFINE ROUTERS
 api_router = APIRouter(prefix="/api")
@@ -647,7 +644,7 @@ async def get_analytics(request: Request):
 
 stripe_api_key = os.environ.get("STRIPE_API_KEY")
 
-@payments_router.post("/stripe/create-session")
+@stripe_router.post("/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
     if not booking:
