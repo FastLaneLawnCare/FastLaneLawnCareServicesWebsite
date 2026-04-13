@@ -331,6 +331,38 @@ class StaffRoleUpdate(BaseModel):
 class StaffPayUpdate(BaseModel):
     hourly_rate: float
 
+class ClockInRequest(BaseModel):
+    notes: Optional[str] = None
+
+class ClockOutRequest(BaseModel):
+    notes: Optional[str] = None
+
+class ClockStatusResponse(BaseModel):
+    session_id: Optional[str] = None
+    clock_in_time: Optional[str] = None
+    clock_out_time: Optional[str] = None
+    duration_hours: Optional[float] = None
+    notes: Optional[str] = None
+    is_clocked_in: bool
+
+class TimeLogResponse(BaseModel):
+    session_id: str
+    staff_id: str
+    clock_in_time: str
+    clock_out_time: Optional[str] = None
+    duration_hours: Optional[float] = None
+    notes: Optional[str] = None
+    created_at: str
+
+class ClockedInStaffResponse(BaseModel):
+    staff_id: str
+    name: str
+    email: str
+    role: str
+    session_id: str
+    clock_in_time: str
+    elapsed_hours: float
+
 class PaymentSessionCreate(BaseModel):
     booking_id: str
     payment_type: str
@@ -956,6 +988,196 @@ async def update_staff_role(staff_user_id: str, role_data: StaffRoleUpdate, requ
         {"$set": {"role": target_role}}
     )
     return {"message": "User role updated"}
+
+# ==================== TIME CLOCK ENDPOINTS ====================
+
+@api_router.post("/staff/clock-in")
+async def clock_in(clock_in_data: ClockInRequest, request: Request):
+    user = await require_role_at_least(request, "staff")
+    user_id = user.get("user_id")
+    
+    # Check if user is already clocked in
+    existing_session = await db.time_clock_sessions.find_one({
+        "staff_id": user_id,
+        "clock_out_time": None
+    })
+    
+    if existing_session:
+        raise HTTPException(status_code=400, detail="Already clocked in")
+    
+    # Create new clock-in session
+    session_id = str(uuid.uuid4())
+    current_time = datetime.now(timezone.utc).isoformat()
+    
+    session_doc = {
+        "session_id": session_id,
+        "staff_id": user_id,
+        "clock_in_time": current_time,
+        "clock_out_time": None,
+        "duration_hours": None,
+        "notes": clock_in_data.notes,
+        "created_at": current_time
+    }
+    
+    await db.time_clock_sessions.insert_one(session_doc)
+    
+    return {
+        "message": "Clocked in successfully",
+        "session": {
+            "session_id": session_id,
+            "clock_in_time": current_time,
+            "notes": clock_in_data.notes
+        }
+    }
+
+@api_router.post("/staff/clock-out")
+async def clock_out(clock_out_data: ClockOutRequest, request: Request):
+    user = await require_role_at_least(request, "staff")
+    user_id = user.get("user_id")
+    
+    # Find open session
+    existing_session = await db.time_clock_sessions.find_one({
+        "staff_id": user_id,
+        "clock_out_time": None
+    })
+    
+    if not existing_session:
+        raise HTTPException(status_code=400, detail="Not clocked in")
+    
+    # Calculate duration
+    clock_in_time = datetime.fromisoformat(existing_session["clock_in_time"].replace('Z', '+00:00'))
+    current_time = datetime.now(timezone.utc)
+    duration_hours = round((current_time - clock_in_time).total_seconds() / 3600, 2)
+    
+    # Update session
+    current_time_iso = current_time.isoformat()
+    await db.time_clock_sessions.update_one(
+        {"session_id": existing_session["session_id"]},
+        {
+            "$set": {
+                "clock_out_time": current_time_iso,
+                "duration_hours": duration_hours,
+                "notes": clock_out_data.notes if clock_out_data.notes else existing_session.get("notes", "")
+            }
+        }
+    )
+    
+    return {
+        "message": "Clocked out successfully",
+        "session": {
+            "session_id": existing_session["session_id"],
+            "clock_in_time": existing_session["clock_in_time"],
+            "clock_out_time": current_time_iso,
+            "duration_hours": duration_hours,
+            "notes": clock_out_data.notes if clock_out_data.notes else existing_session.get("notes", "")
+        }
+    }
+
+@api_router.get("/staff/clock-status", response_model=ClockStatusResponse)
+async def get_clock_status(request: Request):
+    user = await require_role_at_least(request, "staff")
+    user_id = user.get("user_id")
+    
+    # Find open session
+    session = await db.time_clock_sessions.find_one({
+        "staff_id": user_id,
+        "clock_out_time": None
+    })
+    
+    if session:
+        return ClockStatusResponse(
+            session_id=session["session_id"],
+            clock_in_time=session["clock_in_time"],
+            clock_out_time=None,
+            duration_hours=None,
+            notes=session.get("notes"),
+            is_clocked_in=True
+        )
+    else:
+        return ClockStatusResponse(
+            is_clocked_in=False
+        )
+
+@api_router.get("/staff/time-logs")
+async def get_time_logs(
+    request: Request,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    staff_id: Optional[str] = None
+):
+    user = await require_role_at_least(request, "staff")
+    user_role = normalize_role(user.get("role"))
+    
+    # Build query
+    query = {}
+    
+    # If not manager/ceo, only show own logs
+    if user_role not in {"manager", "ceo"}:
+        query["staff_id"] = user.get("user_id")
+    elif staff_id:
+        # Manager/ceo can filter by specific staff
+        query["staff_id"] = staff_id
+    
+    # Add date filters if provided
+    if start_date:
+        query["clock_in_time"] = {"$gte": start_date}
+    if end_date:
+        if "clock_in_time" in query:
+            query["clock_in_time"]["$lte"] = end_date
+        else:
+            query["clock_in_time"] = {"$lte": end_date}
+    
+    # Fetch sessions
+    sessions = await db.time_clock_sessions.find(query).sort("clock_in_time", -1).to_list(length=None)
+    
+    # Convert to response format
+    time_logs = []
+    for session in sessions:
+        time_logs.append({
+            "session_id": session["session_id"],
+            "staff_id": session["staff_id"],
+            "clock_in_time": session["clock_in_time"],
+            "clock_out_time": session.get("clock_out_time"),
+            "duration_hours": session.get("duration_hours"),
+            "notes": session.get("notes"),
+            "created_at": session["created_at"]
+        })
+    
+    return {"time_logs": time_logs}
+
+@api_router.get("/staff/clocked-in", response_model=List[ClockedInStaffResponse])
+async def get_clocked_in_staff(request: Request):
+    user = await require_role_at_least(request, "manager")
+    
+    # Find all open sessions
+    open_sessions = await db.time_clock_sessions.find({
+        "clock_out_time": None
+    }).to_list(length=None)
+    
+    clocked_in_staff = []
+    current_time = datetime.now(timezone.utc)
+    
+    for session in open_sessions:
+        # Get staff user info
+        staff_user = await db.users.find_one({"user_id": session["staff_id"]})
+        if not staff_user:
+            continue
+            
+        # Calculate elapsed hours
+        clock_in_time = datetime.fromisoformat(session["clock_in_time"].replace('Z', '+00:00'))
+        elapsed_hours = round((current_time - clock_in_time).total_seconds() / 3600, 2)
+        
+        clocked_in_staff.append(ClockedInStaffResponse(
+            staff_id=session["staff_id"],
+            name=staff_user.get("name", "Unknown"),
+            email=staff_user.get("email", ""),
+            role=staff_user.get("role", ""),
+            session_id=session["session_id"],
+            clock_in_time=session["clock_in_time"],
+            elapsed_hours=elapsed_hours
+        ))
+    
+    return clocked_in_staff
 
 # ==================== ANALYTICS ENDPOINTS ====================
 
