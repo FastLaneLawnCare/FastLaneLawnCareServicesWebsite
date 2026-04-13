@@ -64,23 +64,13 @@ bookings_router = APIRouter(prefix="/bookings")
 stripe_router = APIRouter(prefix="/stripe")
 paypal_router = APIRouter(prefix="/paypal")
 
-# nesting
-payments_router.include_router(stripe_router)
-payments_router.include_router(paypal_router)
-
-api_router.include_router(auth_router)
-api_router.include_router(bookings_router)
-api_router.include_router(payments_router)
-
-app.include_router(api_router)
-
 @api_router.get("/test")
 async def test():
-    return {"message": "API is working"}
+    return {"message": "API is working ✅"}
 
 @api_router.get("/payments/stripe")
 async def test():
-    return {"message": "API is working"}
+    return {"message": "API is working ✅"}
 
 @payments_router.get("/test")
 async def paymentstest():
@@ -968,6 +958,16 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
+        
+# nesting
+payments_router.include_router(stripe_router)
+payments_router.include_router(paypal_router)
+
+api_router.include_router(auth_router)
+api_router.include_router(bookings_router)
+api_router.include_router(payments_router)
+
+app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
