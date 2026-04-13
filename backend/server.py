@@ -649,6 +649,8 @@ async def get_analytics(request: Request):
 
 # ==================== PAYMENT ENDPOINTS ====================
 
+stripe_api_key = os.environ.get("STRIPE_API_KEY")
+
 @stripe_router.post("/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
@@ -660,12 +662,8 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
     success_url = f"{BASE_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{BASE_URL}/booking"
 
-    stripe_api_key = os.environ.get("STRIPE_API_KEY")
     if not stripe_api_key:
         raise HTTPException(status_code=503, detail="Stripe API key not configured")
-
-    stripe.api_key = stripe_api_key
-
     try:
         session = stripe.checkout.Session.create(
             payment_method_types=["card"],
