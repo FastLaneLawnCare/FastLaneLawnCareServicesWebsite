@@ -43,6 +43,7 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/api")
 auth_router = APIRouter(prefix="/auth")
+payments_router = APIRouter(prefix="/payments")
 
 # define routes here...
 @api_router.get("/test")
@@ -64,6 +65,14 @@ async def admindetails():
 @auth_router.get("/metest")
 async def metest():
     return {"message": "me route works"}
+
+@payments_router.get("/stripetest")
+async def stripetest():
+    return {"message": "Stripe API is Online ✅"} 
+
+@payments_router.get("/paypaltest")
+async def paypaltest():
+    return {"message": "PayPal API is Online ✅"} 
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
@@ -843,7 +852,7 @@ async def capture_paypal_order(order_id: str):
         logger.error(f"PayPal capture error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to capture PayPal order: {str(e)}")
 
-@api_router.get("/payments/paypal/status/{order_id}")
+@payments_router.get("/paypal/status/{order_id}")
 async def get_paypal_status(order_id: str):
     transaction = await db.payment_transactions.find_one({"paypal_order_id": order_id})
     if not transaction:
@@ -908,6 +917,7 @@ async def startup():
 
 # ✅ THEN include router
 api_router.include_router(auth_router)
+api_router.include_router(payments_router)
 app.include_router(api_router)
 
 @app.on_event("shutdown")
