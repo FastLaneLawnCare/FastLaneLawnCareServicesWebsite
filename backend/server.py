@@ -99,6 +99,11 @@ async def stripetest():
 async def paypaltest():
     return {"message": "PayPal API is Online ✅"}
 
+@api_router.get("/auth/me")
+async def get_me(request: Request):
+    user = await get_current_user(request)
+    return user
+
 @stripe_router.get("/startStripeTest")
 async def startStripeTest():
     session = stripe.checkout.Session.create(
