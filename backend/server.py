@@ -652,7 +652,7 @@ async def get_analytics(request: Request):
 
 stripe_api_key = os.environ.get("STRIPE_API_KEY")
 
-@stripe_router.post("/create-session")
+@payments_router.post("/stripe/create-session")
 async def create_stripe_session(payment_data: PaymentSessionCreate, http_request: Request):
     booking = await db.bookings.find_one({"booking_id": payment_data.booking_id})
     if not booking:
