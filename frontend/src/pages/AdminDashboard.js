@@ -165,27 +165,32 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b-2 border-black bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1
-            className="text-2xl font-black uppercase tracking-tight"
-            style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
-            data-testid="admin-dashboard-heading"
-          >
-            Admin Dashboard
-          </h1>
-          <button
-            data-testid="back-to-bookings"
-            onClick={() => navigate('/my-account')}
-            className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition"
-          >
-            My Account
-          </button>
-          <button
-            onClick={() => window.location.href = 'https://fastlanelawn.com'}
-            className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
-          >
-            Home Page
-          </button>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+          <div>
+            <h1
+              className="text-2xl font-black uppercase tracking-tight"
+              style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
+              data-testid="admin-dashboard-heading"
+            >
+              Admin Dashboard
+            </h1>
+            <p className="text-sm text-[#71717A]">Manage bookings, quotes, staff, invoices, and site operations.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              data-testid="back-to-bookings"
+              onClick={() => navigate('/my-account')}
+              className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition"
+            >
+              My Account
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
+            >
+              Home Page
+            </button>
+          </div>
         </div>
       </header>
 
