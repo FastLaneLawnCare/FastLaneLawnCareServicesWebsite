@@ -134,7 +134,8 @@ export default function MyAccount() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-[100dvh] bg-white">
+      <main className="flex-1">
       <header className="border-b-2 border-black bg-white">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
@@ -177,6 +178,7 @@ export default function MyAccount() {
           </div>
         </div>
       </header>
+      </main>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid gap-6 md:grid-cols-3 mb-8">
@@ -445,7 +447,7 @@ function IconRow({ icon: Icon, text }) {
 
 function EmptyState({ title, description, actionLabel, onAction }) {
   return (
-    <div className="text-center py-16 border-2 border-dashed border-black bg-white">
+    <div className="text-center py-10 sm:py-16 border-2 border-dashed border-black bg-white">
       <p className="text-xl font-semibold mb-2">{title}</p>
       <p className="text-[#71717A] mb-6">{description}</p>
       {actionLabel && onAction && (
