@@ -43,10 +43,6 @@ self.addEventListener('activate', (event) => {
 // Fetch strategy: Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
-    return;
-  }
-
   event.respondWith(
     fetch(event.request)
       .then((response) => {
