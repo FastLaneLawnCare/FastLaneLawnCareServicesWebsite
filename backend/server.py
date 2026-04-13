@@ -710,7 +710,7 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
     except Exception as e:
        raise HTTPException(status_code=500, detail=str(e))
     
-@stripe_router.get("/status/{session_id}")
+@payments_router.get("/stripe/status/{session_id}")
 async def get_stripe_status(session_id: str):
     transaction = await db.payment_transactions.find_one({"session_id": session_id})
     if not transaction:
