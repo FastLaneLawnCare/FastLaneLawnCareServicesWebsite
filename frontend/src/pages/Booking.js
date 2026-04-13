@@ -19,6 +19,14 @@ const TIME_SLOTS = [
   '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM'
 ];
 
+const formatPhoneNumber = (value) => {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length === 0) return '';
+  if (digits.length < 4) return `(${digits}`;
+  if (digits.length < 7) return `(${digits.slice(0, 3)})-${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)})-${digits.slice(3, 6)}-${digits.slice(6)}`;
+};
+
 export default function Booking() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -68,9 +76,17 @@ export default function Booking() {
       firstName: current.firstName || firstName,
       lastName: current.lastName || lastName,
       phone: current.phone || user.phone || '',
-      email: current.email || user.email || ''
+      email: current.email || user.email || '',
+      houseNumber: current.houseNumber || user.house_number || '',
+      streetName: current.streetName || user.street_name || '',
+      aptNumber: current.aptNumber || user.apt_number || '',
+      city: current.city || user.city || 'Bloomington',
+      zipCode: current.zipCode || user.zip_code || ''
     }));
   }, [user]);
+
+  const serviceAddressForMap = `${details.houseNumber} ${details.streetName}${details.aptNumber ? ` ${details.aptNumber}` : ''}, ${details.city}, IL ${details.zipCode}`.trim();
+  const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(serviceAddressForMap)}&output=embed`;
 
   const handleBack = () => {
     if (isFirstStage) {
@@ -222,20 +238,22 @@ export default function Booking() {
           <div className="flex justify-between items-center">
             {BOOKING_STAGES.map((stageLabel, s) => (
               <div key={s} className="flex items-center flex-1">
-                <div
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${
-                    stage >= s ? 'bg-[#CCFF00] text-black' : 'bg-white text-black'
-                  }`}
-                >
-                  {s + 1}
+                <div className="flex-1 flex flex-col items-center">
+                  <div
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${
+                      stage >= s ? 'bg-[#CCFF00] text-black' : 'bg-white text-black'
+                    }`}
+                  >
+                    {s + 1}
+                  </div>
                 </div>
                 {s < 4 && <div className={`flex-1 h-1 mx-1 sm:mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'}`}></div>}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2">
+          <div className="grid grid-cols-5 mt-2">
             {BOOKING_STAGES.map((stageLabel) => (
-              <span key={stageLabel} className="text-xs font-semibold uppercase">{stageLabel}</span>
+              <span key={stageLabel} className="text-xs font-semibold uppercase text-center">{stageLabel}</span>
             ))}
           </div>
         </div>
@@ -509,7 +527,9 @@ export default function Booking() {
                     type="tel"
                     required
                     value={details.phone}
-                    onChange={(e) => setDetails({ ...details, phone: e.target.value })}
+                    onChange={(e) => setDetails({ ...details, phone: formatPhoneNumber(e.target.value) })}
+                    placeholder="(000)-000-0000"
+                    maxLength="14"
                     className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
                   />
                 </div>
@@ -548,7 +568,7 @@ export default function Booking() {
                       width="100%"
                       height="100%"
                       frameBorder="0"
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=-89.05,40.45,-88.95,40.55&layer=mapnik&marker=40.484,-89.003`}
+                      src={mapEmbedSrc}
                       title="Service Location Map"
                     ></iframe>
                   </div>

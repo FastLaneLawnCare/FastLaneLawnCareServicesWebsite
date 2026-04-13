@@ -868,9 +868,9 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
-    BASE_URL = "https://api.fastlanelawn.com"
-    success_url = f"{BASE_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{BASE_URL}/booking"
+    frontend_base_url = os.environ.get("FRONTEND_URL", "https://fastlanelawn.com").rstrip("/")
+    success_url = f"{frontend_base_url}/my-account?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{frontend_base_url}/"
 
     if not stripe_api_key:
         raise HTTPException(status_code=503, detail="Stripe API key not configured")
