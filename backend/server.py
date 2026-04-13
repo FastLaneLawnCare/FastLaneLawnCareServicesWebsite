@@ -57,7 +57,7 @@ app.add_middleware(
 )
 
 # ✅ 2. DEFINE ROUTERS
-api_router = APIRouter(prefix="/api")""
+api_router = APIRouter(prefix="/api")
 
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
