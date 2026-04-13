@@ -658,7 +658,6 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
         raise HTTPException(status_code=404, detail="Booking not found")
 
     BASE_URL = "https://api.fastlanelawn.com"
-    host_url = str(http_request.base_url).rstrip('/')
     success_url = f"{BASE_URL}/booking-success?session_id={{CHECKOUT_SESSION_ID}}"
     cancel_url = f"{BASE_URL}/booking"
 
@@ -705,50 +704,53 @@ async def create_stripe_session(payment_data: PaymentSessionCreate, http_request
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)
-
+       raise HTTPException(status_code=500, detail=str(e))
+    
 @stripe_router.get("/status/{session_id}")
 async def get_stripe_status(session_id: str):
-    if not StripeCheckout:
-        raise HTTPException(status_code=503, detail="Stripe integration not available")
-    
     transaction = await db.payment_transactions.find_one({"session_id": session_id})
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
-    
+
+    # If already marked paid in DB, return early
     if transaction.get("payment_status") == "paid":
         return {"status": "complete", "payment_status": "paid"}
-    
+
     try:
-        stripe_api_key = os.environ.get("STRIPE_API_KEY")
-        if not stripe_api_key:
+        # Ensure Stripe key is set
+        if not stripe.api_key:
             raise Exception("Stripe API key not configured")
-        
-        webhook_url = os.environ.get("STRIPE_WEBHOOK_URL", "https://example.com/webhook")
-        stripe_checkout = StripeCheckout(api_key=stripe_api_key, webhook_url=webhook_url)
-        
-        checkout_status = await stripe_checkout.get_checkout_status(session_id)
-        
-        if checkout_status.payment_status == "paid":
+
+        # 🔑 Fetch session directly from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        payment_status = session.payment_status  # 'paid', 'unpaid', etc.
+        status = session.status  # 'complete', 'open', etc.
+
+        # ✅ If payment completed, update DB
+        if payment_status == "paid":
             await db.payment_transactions.update_one(
                 {"session_id": session_id},
-                {"$set": {"payment_status": "paid", "status": "complete"}}
+                {"$set": {
+                    "payment_status": "paid",
+                    "status": "complete"
+                }}
             )
-            
-            booking_id = transaction["booking_id"]
+
             await db.bookings.update_one(
-                {"booking_id": booking_id},
+                {"booking_id": transaction["booking_id"]},
                 {"$set": {"payment_status": "paid"}}
             )
-        
+
         return {
-            "status": checkout_status.status,
-            "payment_status": checkout_status.payment_status,
-            "amount": checkout_status.amount_total / 100
+            "status": status,
+            "payment_status": payment_status,
+            "amount": (session.amount_total or 0) / 100
         }
+
     except Exception as e:
         logger.error(f"Stripe status check failed: {e}")
-        raise HTTPException(status_code=500, detail="Failed to check payment status")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
@@ -960,14 +962,6 @@ async def startup():
 - GET /api/auth/me
 - POST /api/auth/logout
 """)
-        
-# Attach main feature routers
-api_router.include_router(auth_router)
-api_router.include_router(payments_router)
-api_router.include_router(bookings_router)
-
-# Attach everything to app
-app.include_router(api_router)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
