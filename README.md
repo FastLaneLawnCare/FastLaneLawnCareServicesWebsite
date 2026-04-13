@@ -273,3 +273,7 @@ vercel deploy --prod
 
 - CONFIG
 > FRONTEND_URL: https://fastlanesite.vercel.app/
+
+## API
+- Test API (Check if the API is Online)
+> https://api.fastlanelawn.com/api/test
