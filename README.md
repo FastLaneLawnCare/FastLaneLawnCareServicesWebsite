@@ -276,4 +276,4 @@ vercel deploy --prod
 
 ## API
 - Test API (Check if the API is Online)
-> https://api.fastlanelawn.com/api/test
+> https://api.fastlanelawn.com/api/test/

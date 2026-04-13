@@ -110,25 +110,36 @@ async def get_me(request: Request):
     return user
 
 @stripe_router.post("/startStripeTest")
-async def startStripeTest():
+async def start_stripe_test(request: Request):
+    import stripe, os
+
+    stripe.api_key = os.getenv("STRIPE_API_KEY")
+
+    host_url = "https://api.fastlanelawn.com"  # hardcode for reliability
+
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         mode="payment",
-        line_items=[{
-            "price_data": {
-                "currency": "usd",
-                "product_data": {
-                    "name": "Test Service",
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": "Test Payment",
+                    },
+                    "unit_amount": 5000,  # $50.00
                 },
-                "unit_amount": 5000,  # $50.00
-            },
-            "quantity": 1,
-        }],
-        success_url="https://fastlanelawn.com/success",
-        cancel_url="https://fastlanelawn.com/cancel",
+                "quantity": 1,
+            }
+        ],
+        success_url=f"{host_url}/booking-success?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{host_url}/booking",
     )
 
-    return {"id": session.id}
+    return {
+        "url": session.url,
+        "session_id": session.id
+    }
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
