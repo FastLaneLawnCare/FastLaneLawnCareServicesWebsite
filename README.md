@@ -227,5 +227,49 @@ Once working locally:
 ```bash
 vercel deploy --prod
 ```
-Make sure Vercel environment variables are set in project settings.
+---
+## Key Environment Variables Reference
+| Variable | Location | Purpose | Example |
+|----------|----------|---------|---------|
+| `REACT_APP_BACKEND_URL` | Frontend | API endpoint | `https://app.example.com` |
+| `FRONTEND_URL` | Backend | CORS allowed origin | `https://app.example.com` |
+| `MONGO_URL` | Backend | Database connection | `mongodb+srv://user:pass@host` |
+| `DB_NAME` | Backend | Database name | `fastlanelawn` |
+| `JWT_SECRET` | Backend | Auth signing key | `random_secure_string` |
+| `ENVIRONMENT` | Backend | Cookie security flag | `production` or `development` |
+| `STRIPE_API_KEY` | Backend | Stripe payments (optional) | `sk_test_xxxx` |
+| `PAYPAL_CLIENT_ID` | Backend | PayPal (optional) | `xxxx` |
+| `ADMIN_EMAIL` | Backend | Initial admin account | `admin@fastlanelawn.com` |
+| `ADMIN_PASSWORD` | Backend | Initial admin password | `secure_password` |
+---
+## Debugging Checklist
+Use this if things still don't work:
+
+### Signup/Login Not Working?
+- [ ] Is `MONGO_URL` correctly set?
+- [ ] Is `JWT_SECRET` set?
+- [ ] Check backend logs for errors: `console.error()` and `logger.error()`
+- [ ] Check browser console (F12) for CORS errors
+- [ ] Is `FRONTEND_URL` set to your Vercel domain?
+
+### Bookings Not Working?
+- [ ] Can you signup/login? (fix that first)
+- [ ] Is MongoDB database available?
+- [ ] Try creating booking: `curl -X POST http://your-domain/api/bookings ...`
+- [ ] Check if booking_id is being returned
+
+### Quotes Not Working?
+- [ ] Similar to bookings - test locally first
+- [ ] Check if quote_id is being returned
+- [ ] If file upload fails, check storage configuration
+
+### CORS Errors?
+- [ ] `FRONTEND_URL` must match the domain making requests
+- [ ] Check Vercel domain in URL bar
+- [ ] Set `FRONTEND_URL` to exact domain (including https://)
+
+### Cookies/Auth Not Working?
+- [ ] Did you set `ENVIRONMENT=production` for Vercel deployment?
+- [ ] Check browser DevTools → Application → Cookies
+- [ ] Cookies must have secure=true flag in HTTPS
 ---
