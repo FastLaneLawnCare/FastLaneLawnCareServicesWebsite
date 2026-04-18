@@ -65,9 +65,9 @@ async def test():
 async def paymentstest():
     return {"message": "Payments API is working ✅"}
 
-##@bookings_router.get("/test")
-##async def bookingstest():
-##    return {"message": "Bookings API is working ✅"}
+@api_router.get("/bookings/test")
+async def bookingstest():
+    return {"message": "Bookings API is working ✅"}
 
 @auth_router.get("/test")
 async def authtest():

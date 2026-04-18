@@ -11,7 +11,9 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Add More details to the "Booking Summary" Section. (Phone Number &  Email)
 - [ ] Add "Starting At" for lawn mowing.
 - [ ] Force quotes for lawn mowing.
-### Misc
+### Appearance 🎨
+- [ ] Embed Support
+### Misc 📔
 - [x] Connect/Set Up Database (MongoDB)
 - [ ] Create PayPal Account + Get PayPal API Keys
 - [ ] Create Unique Admin Logins
