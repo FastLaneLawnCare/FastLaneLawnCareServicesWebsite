@@ -33,5 +33,23 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - Stripe API Test | https://api.fastlanelawn.com/api/payments/stripe/test/
 - PayPal API Test | https://api.fastlanelawn.com/api/payments/paypal/test/
 - Bookings API Test | https://api.fastlanelawn.com/api/bookings/test/
+### Auth 🧑
+- Get Account Details | https://api.fastlanelawn.com/api/auth/me/
+### Data ✨
+- Analytics | https://api.fastlanelawn.com/api/analytics/
 ### Bookings 📚
+- Get All Bookings | https://api.fastlanelawn.com/api/bookings/
 - Get Your Bookings | https://api.fastlanelawn.com/api/bookings/mine/
+- Get Occupied Time Slots | https://api.fastlanelawn.com/api/bookings/occupied-slots/
+### Quotes 🤝
+- Get All Quotes | https://api.fastlanelawn.com/api/quotes/
+- Get Your Quotes | https://api.fastlanelawn.com/api/quotes/mine/
+### Invoices 💹
+- Get All Invoices | https://api.fastlanelawn.com/api/invoices/
+- Get Your Invoices | https://api.fastlanelawn.com/api/invoices/mine/
+### Staff 👑
+- Get All Staff | https://api.fastlanelawn.com/api/staff/
+- Get ? | https://api.fastlanelawn.com/api/staff/me/
+- Get Clock Status | https://api.fastlanelawn.com/api/staff/clock-status/
+- Get Time Logs | https://api.fastlanelawn.com/api/staff/time-logs/
+- Get Current Clocked In Staff | https://api.fastlanelawn.com/api/staff/clocked-in/
