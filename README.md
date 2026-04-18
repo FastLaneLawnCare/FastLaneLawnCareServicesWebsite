@@ -16,6 +16,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Fix Total booking text. (currently displays total bookings globally)
 - [ ] Reset Password Support (With Email)
 ### Admin Dashboard 👑
+- [ ] Add a Logout Button.
 - [ ] Remove delete capability for bookings. (CEO-only function)
 - [ ] Staff Section pay rate settings should be hidden from everybody but the CEO. (Currently greyed out, but still visible)
 - [ ] Add manual controls to change Booking status for if the booking has been Confirmed and if the payment has went through.
@@ -49,7 +50,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - Get Your Invoices | https://api.fastlanelawn.com/api/invoices/mine/
 ### Staff 👑
 - Get All Staff | https://api.fastlanelawn.com/api/staff/
-- Get ? | https://api.fastlanelawn.com/api/staff/me/
+- Get Your Staff Details | https://api.fastlanelawn.com/api/staff/me/
 - Get Clock Status | https://api.fastlanelawn.com/api/staff/clock-status/
 - Get Time Logs | https://api.fastlanelawn.com/api/staff/time-logs/
 - Get Current Clocked In Staff | https://api.fastlanelawn.com/api/staff/clocked-in/
