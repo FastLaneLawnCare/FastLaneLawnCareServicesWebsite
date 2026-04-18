@@ -658,6 +658,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
 
 @api_router.get("/bookings/mine")
 async def get_my_bookings(request: Request):
+    await require_role_at_least(request, "customer")
     user = request.state.user
     user_email = user["email"]
 
