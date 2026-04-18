@@ -1,5 +1,7 @@
 # Fast Lane Lawn Care Website Docs
 
+This file serves as documentation for our [Website](https://fastlanelawn.com/).
+
 ## To Do List 📝
 ### Bookings 📚 
 - [ ] Move "Scrap Pickup" to the bottom.
