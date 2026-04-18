@@ -5,7 +5,6 @@ import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { FileText, Calendar, Users, ChartBar, X } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { formatPhoneNumberForDisplay } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -15,7 +14,7 @@ export default function AdminDashboard() {
   const role = (user?.role || '').toLowerCase();
   const isCEO = role === 'ceo';
   const isManager = role === 'manager';
-  const isStaff = role === 'staff' || role === 'crew' || role === 'crew_manager';
+  const isStaff = role === 'staff';
   const canViewAdminData = isCEO || isManager;
   const [analytics, setAnalytics] = useState(null);
   const [quotes, setQuotes] = useState([]);
@@ -26,17 +25,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [hourlyRateDrafts, setHourlyRateDrafts] = useState({});
   const [roleDrafts, setRoleDrafts] = useState({});
-  
-  // Time clock state
-  const [clockedIn, setClockedIn] = useState(false);
-  const [currentSession, setCurrentSession] = useState(null);
-  const [todayHours, setTodayHours] = useState(0);
-  const [recentLogs, setRecentLogs] = useState([]);
-  const [clockedInStaff, setClockedInStaff] = useState([]);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [showTimeLogsModal, setShowTimeLogsModal] = useState(false);
-  const [selectedStaffTimeLogs, setSelectedStaffTimeLogs] = useState([]);
-  const [selectedStaffName, setSelectedStaffName] = useState('');
 
   // Invoice form state
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
@@ -48,7 +36,7 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (!authLoading && (!user || !['ceo', 'manager', 'crew_manager', 'crew', 'staff'].includes((user.role || '').toLowerCase()))) {
+    if (!authLoading && (!user || !['ceo', 'manager', 'staff'].includes((user.role || '').toLowerCase()))) {
       navigate('/login');
       return;
     }
@@ -58,121 +46,20 @@ export default function AdminDashboard() {
     }
   }, [user, authLoading, navigate]);
 
-  // Update elapsed time when clocked in
-  useEffect(() => {
-    let interval;
-    if (clockedIn && currentSession?.clock_in_time) {
-      interval = setInterval(() => {
-        const clockInTime = new Date(currentSession.clock_in_time);
-        const now = new Date();
-        const elapsed = (now - clockInTime) / 1000; // seconds
-        setElapsedTime(elapsed);
-      }, 1000);
-    } else {
-      setElapsedTime(0);
-    }
-    
-    return () => clearInterval(interval);
-  }, [clockedIn, currentSession]);
-
-  // Clock in handler
-  const handleClockIn = async () => {
-    try {
-      const { data } = await axios.post(`${API}/staff/clock-in`, 
-        { notes: '' }, 
-        { withCredentials: true }
-      );
-      
-      setClockedIn(true);
-      setCurrentSession({
-        session_id: data.session.session_id,
-        clock_in_time: data.session.clock_in_time,
-        is_clocked_in: true
-      });
-      
-      toast.success('Clocked in successfully');
-      
-      // Refresh data
-      fetchData();
-    } catch (error) {
-      console.error('Clock in error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to clock in');
-    }
-  };
-
-  // Clock out handler
-  const handleClockOut = async () => {
-    try {
-      const { data } = await axios.post(`${API}/staff/clock-out`, 
-        { notes: '' }, 
-        { withCredentials: true }
-      );
-      
-      setClockedIn(false);
-      setCurrentSession(null);
-      setElapsedTime(0);
-      
-      toast.success(`Clocked out successfully. Duration: ${data.session.duration_hours} hours`);
-      
-      // Refresh data
-      fetchData();
-    } catch (error) {
-      console.error('Clock out error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to clock out');
-    }
-  };
-
-  // View staff time logs handler
-  const handleViewTimeLogs = async (member) => {
-    try {
-      const { data } = await axios.get(`${API}/staff/time-logs`, {
-        params: { staff_id: member.user_id },
-        withCredentials: true
-      });
-      
-      setSelectedStaffTimeLogs(data.time_logs);
-      setSelectedStaffName(member.name);
-      setShowTimeLogsModal(true);
-    } catch (error) {
-      console.error('Failed to fetch staff time logs:', error);
-      toast.error('Failed to load time logs');
-    }
-  };
-
   const fetchData = async () => {
     try {
       if (isStaff) {
-        const [staffRes, clockStatusRes, timeLogsRes] = await Promise.all([
-          axios.get(`${API}/staff/me`, { withCredentials: true }),
-          axios.get(`${API}/staff/clock-status`, { withCredentials: true }),
-          axios.get(`${API}/staff/time-logs`, { withCredentials: true })
-        ]);
-        
-        setMyStaffMetrics(staffRes.data);
-        
-        // Handle clock status
-        const clockStatus = clockStatusRes.data;
-        setClockedIn(clockStatus.is_clocked_in);
-        setCurrentSession(clockStatus.is_clocked_in ? clockStatus : null);
-        
-        // Calculate today's hours from time logs
-        const today = new Date().toISOString().split('T')[0];
-        const todayLogs = timeLogsRes.data.time_logs.filter(log => 
-          log.clock_out_time && log.clock_out_time.startsWith(today)
-        );
-        const hoursToday = todayLogs.reduce((sum, log) => sum + (log.duration_hours || 0), 0);
-        setTodayHours(hoursToday);
-        setRecentLogs(timeLogsRes.data.time_logs.slice(0, 7));
+        const { data } = await axios.get(`${API}/staff/me`, { withCredentials: true });
+        setMyStaffMetrics(data);
         return;
       }
 
-      const [analyticsRes, quotesRes, bookingsRes, staffRes, invoicesRes, clockedInRes] = await Promise.all([
+      const [analyticsRes, quotesRes, bookingsRes, staffRes, invoicesRes] = await Promise.all([
         axios.get(`${API}/analytics`, { withCredentials: true }),
         axios.get(`${API}/quotes`, { withCredentials: true }),
         axios.get(`${API}/bookings`, { withCredentials: true }),
         axios.get(`${API}/staff`, { withCredentials: true }),
-        axios.get(`${API}/invoices`, { withCredentials: true }),
-        axios.get(`${API}/staff/clocked-in`, { withCredentials: true })
+        axios.get(`${API}/invoices`, { withCredentials: true })
       ]);
 
       setAnalytics(analyticsRes.data);
@@ -180,12 +67,11 @@ export default function AdminDashboard() {
       setBookings(bookingsRes.data);
       setStaff(staffRes.data);
       setInvoices(invoicesRes.data);
-      setClockedInStaff(clockedInRes.data);
       setHourlyRateDrafts(
         staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: member.hourly_rate || 0 }), {})
       );
       setRoleDrafts(
-        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: (member.role || 'crew').toLowerCase() }), {})
+        staffRes.data.reduce((acc, member) => ({ ...acc, [member.user_id]: (member.role || 'staff').toLowerCase() }), {})
       );
     } catch (error) {
       console.error('Failed to fetch admin data:', error);
@@ -346,7 +232,7 @@ export default function AdminDashboard() {
           <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
-                {role === 'crew_manager' ? 'Crew Manager Dashboard' : 'Crew Dashboard'}
+                Staff Dashboard
               </h1>
               <p className="text-sm text-[#71717A]">Your performance and earnings summary.</p>
             </div>
@@ -359,7 +245,7 @@ export default function AdminDashboard() {
           </div>
         </header>
         <div className="max-w-4xl mx-auto px-6 py-10">
-          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal>
+          <div className="border-2 border-black p-6 bg-white">
             <h2 className="text-2xl font-black uppercase mb-4">{myStaffMetrics.name}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
               <div>
@@ -383,77 +269,6 @@ export default function AdminDashboard() {
                 <p className="text-xs font-semibold uppercase text-[#71717A]">Avg Performance</p>
               </div>
             </div>
-          </div>
-
-          {/* Time Clock Card */}
-          <div className="border-2 border-black p-6 bg-white mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-black uppercase">Time Clock</h3>
-              <span className={`px-3 py-1 text-xs font-bold uppercase border-2 ${
-                clockedIn 
-                  ? 'border-green-500 bg-green-500 text-white' 
-                  : 'border-gray-300 bg-gray-100 text-gray-600'
-              }`}>
-                {clockedIn ? 'CLOCKED IN' : 'NOT CLOCKED IN'}
-              </span>
-            </div>
-            
-            {clockedIn && currentSession && (
-              <div className="mb-4 p-4 border-2 border-black bg-[#CCFF00]/20">
-                <p className="text-sm font-semibold uppercase text-[#71717A] mb-1">
-                  Clocked in since {new Date(currentSession.clock_in_time).toLocaleTimeString()}
-                </p>
-                <p className="text-2xl font-black">
-                  {Math.floor(elapsedTime / 3600)}h {Math.floor((elapsedTime % 3600) / 60)}m {Math.floor(elapsedTime % 60)}s
-                </p>
-              </div>
-            )}
-            
-            <button
-              onClick={clockedIn ? handleClockOut : handleClockIn}
-              className={`w-full py-4 font-bold uppercase border-2 transition ${
-                clockedIn 
-                  ? 'bg-black text-white border-black hover:bg-gray-800' 
-                  : 'bg-[#CCFF00] text-black border-black hover:bg-[#B8E600]'
-              }`}
-            >
-              {clockedIn ? 'CLOCK OUT' : 'CLOCK IN'}
-            </button>
-          </div>
-
-          {/* Time Summary */}
-          <div className="border-2 border-black p-6 bg-white mt-6">
-            <h3 className="text-xl font-black uppercase mb-4">Time Summary</h3>
-            <div className="mb-4">
-              <p className="text-3xl font-black">{todayHours.toFixed(2)}h</p>
-              <p className="text-sm font-semibold uppercase text-[#71717A]">Today's Hours</p>
-            </div>
-            
-            {recentLogs.length > 0 && (
-              <div>
-                <h4 className="text-sm font-bold uppercase text-[#71717A] mb-3">Recent Time Logs</h4>
-                <div className="space-y-2">
-                  {recentLogs.map((log) => (
-                    <div key={log.session_id} className="flex justify-between items-center py-2 border-b border-gray-200">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {new Date(log.clock_in_time).toLocaleDateString()}
-                        </p>
-                        <p className="text-xs text-[#71717A]">
-                          {new Date(log.clock_in_time).toLocaleTimeString()} - 
-                          {log.clock_out_time ? new Date(log.clock_out_time).toLocaleTimeString() : 'Active'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black">
-                          {log.duration_hours ? `${log.duration_hours.toFixed(2)}h` : 'Active'}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -508,9 +323,7 @@ export default function AdminDashboard() {
             <div
               key={idx}
               data-testid={`stat-${stat.label.toLowerCase().replace(/\s/g, '-')}`}
-              className="border-2 border-black p-6 bg-white reveal-up"
-              data-reveal
-              style={{ '--reveal-delay': `${idx * 55}ms` }}
+              className="border-2 border-black p-6 bg-white"
             >
               <stat.icon size={32} weight="bold" className="mb-3" />
               <p className="text-sm font-semibold uppercase text-[#71717A]">{stat.label}</p>
@@ -553,7 +366,7 @@ export default function AdminDashboard() {
           </TabsList>
 
           {/* Invoice Creator */}
-          <TabsContent value="invoices" className="mt-6 tab-animated" data-testid="invoices-content">
+          <TabsContent value="invoices" className="mt-6" data-testid="invoices-content">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Invoice Creator
@@ -693,7 +506,7 @@ export default function AdminDashboard() {
             {/* Invoices List - Mobile Responsive */}
             <div className="space-y-4">
               {invoices.map((invoice) => (
-                <div key={invoice.invoice_id} className="border-2 border-black p-4 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`invoice-${invoice.invoice_id}`}>
+                <div key={invoice.invoice_id} className="border-2 border-black p-4 bg-white" data-testid={`invoice-${invoice.invoice_id}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="font-mono text-sm font-bold">#{invoice.invoice_id.slice(-8).toUpperCase()}</p>
@@ -723,13 +536,13 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Quote Requests */}
-          <TabsContent value="quotes" className="mt-6 tab-animated" data-testid="quotes-content">
+          <TabsContent value="quotes" className="mt-6" data-testid="quotes-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               Quote Requests
             </h2>
             <div className="space-y-4">
               {quotes.map((quote) => (
-                <div key={quote.quote_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`quote-${quote.quote_id}`}>
+                <div key={quote.quote_id} className="border-2 border-black p-6 bg-white" data-testid={`quote-${quote.quote_id}`}>
                   <div className="flex gap-6">
                     {/* Photo Thumbnail */}
                     {quote.photo_url && (
@@ -748,7 +561,7 @@ export default function AdminDashboard() {
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <h3 className="font-black uppercase text-lg">{quote.name}</h3>
-                          <p className="text-sm text-[#71717A]">{quote.email} • {formatPhoneNumberForDisplay(quote.phone)}</p>
+                          <p className="text-sm text-[#71717A]">{quote.email} • {quote.phone}</p>
                         </div>
                         <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${
                           quote.status === 'pending' ? 'bg-[#CCFF00]' : 
@@ -803,13 +616,13 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Bookings - Mobile Responsive */}
-          <TabsContent value="bookings" className="mt-6 tab-animated" data-testid="bookings-content">
+          <TabsContent value="bookings" className="mt-6" data-testid="bookings-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               All Bookings
             </h2>
             <div className="space-y-4">
               {bookings.map((booking) => (
-                <div key={booking.booking_id} className="border-2 border-black p-4 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`booking-${booking.booking_id}`}>
+                <div key={booking.booking_id} className="border-2 border-black p-4 bg-white" data-testid={`booking-${booking.booking_id}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <p className="font-mono text-sm font-bold">#{booking.booking_id.slice(-8).toUpperCase()}</p>
@@ -848,33 +661,17 @@ export default function AdminDashboard() {
           </TabsContent>
 
           {/* Staff Monitoring */}
-          <TabsContent value="staff" className="mt-6 tab-animated" data-testid="staff-content">
+          <TabsContent value="staff" className="mt-6" data-testid="staff-content">
             <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
               Staff Monitoring
             </h2>
             <div className="grid gap-6">
               {staff.map((member) => (
-                <div key={member.user_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '40ms' }} data-testid={`staff-${member.user_id}`}>
+                <div key={member.user_id} className="border-2 border-black p-6 bg-white" data-testid={`staff-${member.user_id}`}>
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="font-black uppercase text-lg">{member.name}</h3>
                       <p className="text-sm text-[#71717A]">{member.email}</p>
-                      {(() => {
-                        const clockedInInfo = clockedInStaff.find(staff => staff.staff_id === member.user_id);
-                        if (clockedInInfo) {
-                          return (
-                            <div className="mt-2">
-                              <span className="px-2 py-1 text-xs font-bold uppercase border-2 border-green-500 bg-green-500 text-white">
-                                CLOCKED IN
-                              </span>
-                              <p className="text-xs text-[#71717A] mt-1">
-                                Since {new Date(clockedInInfo.clock_in_time).toLocaleTimeString()} ({clockedInInfo.elapsed_hours.toFixed(1)}h)
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
                     </div>
                     <span className="px-3 py-1 text-xs font-bold uppercase border-2 border-black bg-[#CCFF00]">
                       {member.role}
@@ -903,14 +700,14 @@ export default function AdminDashboard() {
                         step="0.01"
                         value={hourlyRateDrafts[member.user_id] ?? 0}
                         onChange={(e) => setHourlyRateDrafts((current) => ({ ...current, [member.user_id]: e.target.value }))}
-                        disabled={!['staff', 'crew', 'crew_manager'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
                         className="w-full h-12 px-4 border-2 border-black"
                       />
                     </div>
                     <div className="flex items-end">
                       <button
                         onClick={() => handleHourlyRateUpdate(member)}
-                        disabled={!['staff', 'crew', 'crew_manager'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
+                        disabled={!['staff'].includes((member.role || '').toLowerCase()) || (!isCEO && !isManager)}
                         className="w-full h-12 px-4 bg-[#CCFF00] border-2 border-black font-bold uppercase disabled:opacity-50"
                       >
                         Save Pay Rate
@@ -925,8 +722,7 @@ export default function AdminDashboard() {
                           disabled={!isCEO || (member.role || '').toLowerCase() === 'ceo'}
                           className="w-full h-12 px-3 border-2 border-black bg-white uppercase"
                         >
-                          <option value="crew">Crew</option>
-                          <option value="crew_manager">Crew Manager</option>
+                          <option value="staff">Staff</option>
                           <option value="manager">Manager</option>
                         </select>
                         <button
@@ -938,14 +734,6 @@ export default function AdminDashboard() {
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-end">
-                      <button
-                        onClick={() => handleViewTimeLogs(member)}
-                        className="w-full h-12 px-4 bg-black text-white border-2 border-black font-bold uppercase hover:bg-gray-800"
-                      >
-                        View Time Logs
-                      </button>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -955,62 +743,6 @@ export default function AdminDashboard() {
         </>
         )}
       </div>
-
-      {/* Time Logs Modal */}
-      {showTimeLogsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white border-2 border-black max-w-4xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black uppercase">
-                  Time Logs - {selectedStaffName}
-                </h3>
-                <button
-                  onClick={() => setShowTimeLogsModal(false)}
-                  className="p-2 hover:bg-gray-100 border-2 border-black"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              
-              {selectedStaffTimeLogs.length > 0 ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-5 gap-4 text-xs font-bold uppercase text-[#71717A] border-b-2 border-black pb-2">
-                    <div>Date</div>
-                    <div>Clock In</div>
-                    <div>Clock Out</div>
-                    <div>Duration</div>
-                    <div>Notes</div>
-                  </div>
-                  {selectedStaffTimeLogs.map((log) => (
-                    <div key={log.session_id} className="grid grid-cols-5 gap-4 py-3 border-b border-gray-200">
-                      <div className="text-sm font-semibold">
-                        {new Date(log.clock_in_time).toLocaleDateString()}
-                      </div>
-                      <div className="text-sm">
-                        {new Date(log.clock_in_time).toLocaleTimeString()}
-                      </div>
-                      <div className="text-sm">
-                        {log.clock_out_time ? new Date(log.clock_out_time).toLocaleTimeString() : 'Active'}
-                      </div>
-                      <div className="text-sm font-black">
-                        {log.duration_hours ? `${log.duration_hours.toFixed(2)}h` : 'Active'}
-                      </div>
-                      <div className="text-sm text-[#71717A]">
-                        {log.notes || '-'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-[#71717A]">No time logs found for this staff member.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

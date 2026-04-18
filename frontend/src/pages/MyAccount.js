@@ -5,7 +5,6 @@ import { AuthContext } from '../context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Calendar, Clock, CreditCard, FileText, House, MapPin, Phone, Receipt } from '@phosphor-icons/react';
 import { toast } from 'sonner';
-import { formatPhoneNumber, formatPhoneNumberForDisplay } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -88,7 +87,7 @@ export default function MyAccount() {
     if (user) {
       setProfileForm({
         name: user.name || '',
-        phone: formatPhoneNumber(user.phone || ''),
+        phone: user.phone || '',
         houseNumber: user.house_number || '',
         streetName: user.street_name || '',
         aptNumber: user.apt_number || '',
@@ -134,8 +133,7 @@ export default function MyAccount() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-white">
-      <main className="flex-1">
+    <div className="min-h-screen bg-white">
       <header className="border-b-2 border-black bg-white">
         <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
@@ -178,21 +176,20 @@ export default function MyAccount() {
           </div>
         </div>
       </header>
-      </main>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '0ms' }}>
+          <div className="border-2 border-black p-6 bg-white">
             <p className="text-sm font-semibold uppercase text-[#71717A]">Customer</p>
             <p className="text-2xl font-black mt-2">{user?.name}</p>
             <p className="mt-2 break-all">{user?.email}</p>
-            <p className="mt-1">{formatPhoneNumberForDisplay(user?.phone) || 'No phone saved yet'}</p>
+            <p className="mt-1">{user?.phone || 'No phone saved yet'}</p>
           </div>
-          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '70ms' }}>
+          <div className="border-2 border-black p-6 bg-white">
             <p className="text-sm font-semibold uppercase text-[#71717A]">Submitted Quotes</p>
             <p className="text-4xl font-black mt-2">{quotes.length}</p>
           </div>
-          <div className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '140ms' }}>
+          <div className="border-2 border-black p-6 bg-white">
             <p className="text-sm font-semibold uppercase text-[#71717A]">Bookings / Invoices</p>
             <p className="text-4xl font-black mt-2">{bookings.length} / {invoices.length}</p>
           </div>
@@ -214,7 +211,7 @@ export default function MyAccount() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="bookings" className="mt-6 tab-animated">
+          <TabsContent value="bookings" className="mt-6">
             {bookings.length === 0 ? (
               <EmptyState
                 title="No bookings yet"
@@ -225,7 +222,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {bookings.map((booking) => (
-                  <div key={booking.booking_id} className="border-2 border-black p-6 bg-white hover:shadow-[4px_4px_0px_#0A0A0A] transition-shadow reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
+                  <div key={booking.booking_id} className="border-2 border-black p-6 bg-white hover:shadow-[4px_4px_0px_#0A0A0A] transition-shadow">
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -250,7 +247,7 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="quotes" className="mt-6 tab-animated">
+          <TabsContent value="quotes" className="mt-6">
             {quotes.length === 0 ? (
               <EmptyState
                 title="No submitted quotes yet"
@@ -261,7 +258,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {quotes.map((quote) => (
-                  <div key={quote.quote_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
+                  <div key={quote.quote_id} className="border-2 border-black p-6 bg-white">
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -273,7 +270,7 @@ export default function MyAccount() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 text-sm">
                       <IconRow icon={House} text={quote.name} />
-                      <IconRow icon={Phone} text={formatPhoneNumberForDisplay(quote.phone)} />
+                      <IconRow icon={Phone} text={quote.phone} />
                       <IconRow icon={Receipt} text={quote.email} />
                       <IconRow icon={FileText} text={quote.response_message || 'Awaiting response from Fast Lane'} />
                     </div>
@@ -283,7 +280,7 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="invoices" className="mt-6 tab-animated">
+          <TabsContent value="invoices" className="mt-6">
             {invoices.length === 0 ? (
               <EmptyState
                 title="No invoices yet"
@@ -292,7 +289,7 @@ export default function MyAccount() {
             ) : (
               <div className="grid gap-6">
                 {invoices.map((invoice) => (
-                  <div key={invoice.invoice_id} className="border-2 border-black p-6 bg-white reveal-up" data-reveal style={{ '--reveal-delay': '35ms' }}>
+                  <div key={invoice.invoice_id} className="border-2 border-black p-6 bg-white">
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
@@ -319,8 +316,8 @@ export default function MyAccount() {
             )}
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6 tab-animated">
-            <form onSubmit={handleProfileSave} className="border-2 border-black p-6 bg-[#F4F4F5] max-w-2xl reveal-up" data-reveal>
+          <TabsContent value="profile" className="mt-6">
+            <form onSubmit={handleProfileSave} className="border-2 border-black p-6 bg-[#F4F4F5] max-w-2xl">
               <h2 className="text-2xl font-black uppercase mb-6" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
                 Edit Profile
               </h2>
@@ -340,9 +337,7 @@ export default function MyAccount() {
                   <input
                     type="tel"
                     value={profileForm.phone}
-                    onChange={(e) => setProfileForm((current) => ({ ...current, phone: formatPhoneNumber(e.target.value) }))}
-                    placeholder="(000)-000-0000"
-                    maxLength="14"
+                    onChange={(e) => setProfileForm((current) => ({ ...current, phone: e.target.value }))}
                     className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
                   />
                 </div>
@@ -447,7 +442,7 @@ function IconRow({ icon: Icon, text }) {
 
 function EmptyState({ title, description, actionLabel, onAction }) {
   return (
-    <div className="text-center py-10 sm:py-16 border-2 border-dashed border-black bg-white">
+    <div className="text-center py-16 border-2 border-dashed border-black bg-white">
       <p className="text-xl font-semibold mb-2">{title}</p>
       <p className="text-[#71717A] mb-6">{description}</p>
       {actionLabel && onAction && (

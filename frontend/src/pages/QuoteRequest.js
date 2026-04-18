@@ -4,7 +4,6 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { ArrowLeft, UploadSimple } from '@phosphor-icons/react';
 import { AuthContext } from '../context/AuthContext';
-import { formatPhoneNumber } from '../lib/phone';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,7 +27,7 @@ export default function QuoteRequest() {
       ...current,
       name: current.name || user.name || '',
       email: current.email || user.email || '',
-      phone: current.phone || formatPhoneNumber(user.phone || '')
+      phone: current.phone || user.phone || ''
     }));
   }, [user]);
 
@@ -113,9 +112,7 @@ export default function QuoteRequest() {
               type="tel"
               required
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
-              placeholder="(000)-000-0000"
-              maxLength="14"
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full h-14 px-4 border-2 border-black text-lg focus:outline-none focus:ring-2 focus:ring-[#CCFF00]"
             />
           </div>
