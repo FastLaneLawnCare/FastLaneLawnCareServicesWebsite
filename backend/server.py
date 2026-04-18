@@ -82,22 +82,6 @@ async def stripetest():
 async def paypaltest():
     return {"message": "PayPal API is working ✅"}
 
-@auth_router.get("/registertest")
-async def registertest():
-    return {"message": "register route works ✅"}
-
-@auth_router.get("/logintest")
-async def logintest():
-    return {"message": "login route works ✅"}
-
-@auth_router.get("/admindetails")
-async def admindetails():
-    return {"message": "CEO login -> Email: admin@fastlanelawn.com - Password: admin123"}
-
-@auth_router.get("/metest")
-async def metest():
-    return {"message": "Auth API is working and you are authenticated! ✅"}
-
 @api_router.get("/auth/me")
 async def get_me(request: Request):
     user = await get_current_user(request)
