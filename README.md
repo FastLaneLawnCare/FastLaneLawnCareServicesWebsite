@@ -2,7 +2,6 @@
 - Connect/Set Up Database (MongoDB)
 - Create PayPal Account + Get PayPal API Keys
 - Create Unique Admin Logins
-- Test
 
 # Vercel Migration - Environment Variables Guide
 After migrating to Vercel, you must configure these environment variables for the application to work properly.
