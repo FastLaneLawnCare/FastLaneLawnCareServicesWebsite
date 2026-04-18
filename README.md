@@ -21,6 +21,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Add manual controls to change Booking status for if the booking has been Confirmed and if the payment has went through.
 ### Appearance 🎨
 - [ ] Embed Support.
+- [ ] Add A custom "Page Not Found" redirect whenever a page is not found or something fails.
 ### Payment 🤑
 - [ ] Create PayPal Account + Get PayPal API Keys
 

@@ -605,8 +605,6 @@ async def logout(response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
-# Google auth removed - using local auth only
-
 # ==================== BOOKING ENDPOINTS ====================
 
 @api_router.post("/bookings", response_model=Booking)

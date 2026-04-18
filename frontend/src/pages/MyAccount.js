@@ -231,7 +231,6 @@ export default function MyAccount() {
               />
             ) : (
               <div className="grid gap-6">
-                console.log(i, typeof i, Array.isArray(i));
                 {bookings.map((booking) => (
                   <div key={booking.booking_id} className="border-2 border-black p-6 bg-white hover:shadow-[4px_4px_0px_#0A0A0A] transition-shadow">
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
