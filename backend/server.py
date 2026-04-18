@@ -672,7 +672,7 @@ async def get_my_bookings(request: Request):
         return bookings
 
     except Exception as e:
-        print("ERROR:", e)
+        print("🚨:", e)
         raise e
 
 @api_router.get("/bookings", response_model=List[Booking])

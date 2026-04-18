@@ -30,7 +30,7 @@ export default function MyAccount() {
   const fetchAccountData = useCallback(async () => {
     try {
       const [bookingsRes, quotesRes, invoicesRes] = await Promise.all([
-        axios.get(`${API}/bookings`, { withCredentials: true }),
+        axios.get(`${API}/bookings/mine`, { withCredentials: true }),
         axios.get(`${API}/quotes/mine`, { withCredentials: true }),
         axios.get(`${API}/invoices/mine`, { withCredentials: true })
       ]);
