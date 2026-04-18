@@ -54,7 +54,7 @@ api_router = APIRouter(prefix="/api")
 
 auth_router = APIRouter(prefix="/auth")
 payments_router = APIRouter(prefix="/payments")
-bookings_router = APIRouter(prefix="/bookings")
+## bookings_router = APIRouter(prefix="/bookings")
 stripe_router = APIRouter(prefix="/stripe")
 paypal_router = APIRouter(prefix="/paypal")
 
@@ -66,9 +66,9 @@ async def test():
 async def paymentstest():
     return {"message": "Payments API is working ✅"}
 
-@bookings_router.get("/test")
-async def bookingstest():
-    return {"message": "Bookings API is working ✅"}
+##@bookings_router.get("/test")
+##async def bookingstest():
+##    return {"message": "Bookings API is working ✅"}
 
 @auth_router.get("/test")
 async def authtest():
@@ -656,6 +656,18 @@ async def create_booking(booking_data: BookingCreate, request: Request):
     booking_doc.pop("_id", None)
     return booking_doc
 
+@api_router.get("/bookings/mine")
+async def get_my_bookings(request: Request):
+    user = request.state.user
+    user_email = user["email"]
+
+    bookings = await db.bookings.find(
+        {"email": user_email},
+        {"_id": 0}
+    ).to_list(1000)
+
+    return bookings
+
 @api_router.get("/bookings", response_model=List[Booking])
 async def get_bookings(request: Request):
     user = await get_current_user(request)
@@ -1190,20 +1202,6 @@ async def get_analytics(request: Request):
         "pending_quotes": pending_quotes
     }
 
-# ==================== BOOKING ENDPOINTS ====================
-
-@bookings_router.get("/mine")
-async def get_my_bookings(request: Request):
-    user = request.state.user
-    user_email = user["email"]
-
-    bookings = await db.bookings.find(
-        {"email": user_email},
-        {"_id": 0}
-    ).to_list(1000)
-
-    return bookings
-
 # ==================== PAYMENT ENDPOINTS ====================
 
 stripe_api_key = os.environ.get("STRIPE_API_KEY")
@@ -1534,7 +1532,7 @@ payments_router.include_router(stripe_router)
 payments_router.include_router(paypal_router)
 
 api_router.include_router(auth_router)
-api_router.include_router(bookings_router)
+##api_router.include_router(bookings_router)
 api_router.include_router(payments_router)
 
 app.include_router(api_router)
