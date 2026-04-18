@@ -27,7 +27,6 @@ from paypalcheckoutsdk.orders import OrdersCreateRequest, OrdersCaptureRequest
 
 import secrets
 from bson import ObjectId
-import secrets
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -238,8 +237,6 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-
-# Google auth models removed
 
 class BookingCreate(BaseModel):
     date: str
@@ -659,10 +656,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
 @api_router.get("/bookings/mine")
 async def get_my_bookings(request: Request):
     try:
-        await require_role_at_least(request, "customer")
-
-        user = request.state.user
-        print("USER:", user)
+        user = await get_current_user(request)
 
         bookings = await db.bookings.find(
             {"email": user["email"]},
