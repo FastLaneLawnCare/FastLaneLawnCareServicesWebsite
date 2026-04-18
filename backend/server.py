@@ -1528,6 +1528,10 @@ async def startup():
 - POST /api/auth/logout
 """)
         
+@app.get("/")
+def root():
+    return {"status": "ok"}
+        
 # nesting
 payments_router.include_router(stripe_router)
 payments_router.include_router(paypal_router)
