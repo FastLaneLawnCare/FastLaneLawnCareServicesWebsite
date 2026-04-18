@@ -1,9 +1,16 @@
-## To Do List
-- Connect/Set Up Database (MongoDB) ✅
-- Add Goole
+# To Do List
+- Connect/Set Up Database (MongoDB) [✅]
 - Create PayPal Account + Get PayPal API Keys ❌
 - Create Unique Admin Logins ❌
 - Reset Password Support (With Email) ❌
+
+## Bookings 📚 
+- Move "Scrap Pickup" to the bottom [❌]
+- Change the "Quote" button color to green [❌]
+- Center the text for the stage titles [❌]
+- Add More details to the "Booking Summary" Section. (Phone Number &  Email) [❌]
+- Add "Starting At" for Lawn Mowing [❌]
+- Force quotes for lawn mowing [❌]
 
 ## API's
 - API Test | https://api.fastlanelawn.com/api/test/
