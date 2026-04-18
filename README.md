@@ -5,7 +5,7 @@
 - Reset Password Support (With Email) ❌
 
 ## Bookings 📚 
-- Move "Scrap Pickup" to the bottom [❌]
+- [❌] Move "Scrap Pickup" to the bottom
 - Change the "Quote" button color to green [❌]
 - Center the text for the stage titles [❌]
 - Add More details to the "Booking Summary" Section. (Phone Number &  Email) [❌]
