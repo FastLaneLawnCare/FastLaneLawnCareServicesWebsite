@@ -12,11 +12,13 @@ export default function MyAccount() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading, logout, updateProfile } = useContext(AuthContext);
+
   const [bookings, setBookings] = useState([]);
   const [quotes, setQuotes] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+
   const [profileForm, setProfileForm] = useState({
     name: '',
     phone: '',
@@ -27,24 +29,32 @@ export default function MyAccount() {
     zipCode: ''
   });
 
-  const fetchAccountData = useCallback(async () => {
-    try {
-      const [bookingsRes, quotesRes, invoicesRes] = await Promise.all([
-        axios.get(`${API}/bookings/mine`, { withCredentials: true }),
-        axios.get(`${API}/quotes/mine`, { withCredentials: true }),
-        axios.get(`${API}/invoices/mine`, { withCredentials: true })
-      ]);
+  /* ---------- FIX: ensure arrays ---------- */
+  const ensureArray = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.results)) return data.results;
+    return [];
+  };
 
-      setBookings(bookingsRes.data);
-      setQuotes(quotesRes.data);
-      setInvoices(invoicesRes.data);
-    } catch (error) {
-      console.error('Failed to fetch account data:', error);
-      toast.error('Failed to load your account');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchAccountData = useCallback(async () => {
+      try {
+        const [bookingsRes, quotesRes, invoicesRes] = await Promise.all([
+          axios.get(`${API}/bookings/mine`, { withCredentials: true }),
+          axios.get(`${API}/quotes/mine`, { withCredentials: true }),
+          axios.get(`${API}/invoices/mine`, { withCredentials: true })
+        ]);
+  
+        setBookings(ensureArray(bookingsRes.data));
+        setQuotes(ensureArray(quotesRes.data));
+        setInvoices(ensureArray(invoicesRes.data));
+      } catch (error) {
+        console.error('Failed to fetch account data:', error);
+        toast.error('Failed to load your account');
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
   const checkPaymentStatus = useCallback(async () => {
     const sessionId = searchParams.get('session_id');
