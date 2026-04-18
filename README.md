@@ -11,6 +11,8 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Add More details to the "Booking Summary" Section. (Phone Number &  Email)
 - [ ] Add "Starting At" for lawn mowing.
 - [ ] Force quotes for lawn mowing.
+### Account Dashboard 👑
+- [x] Fix Bookings displaying globally
 ### Appearance 🎨
 - [ ] Embed Support
 ### Misc 📔
