@@ -1,5 +1,6 @@
 ## To Do List
 - Connect/Set Up Database (MongoDB) ✅
+- Add Goole
 - Create PayPal Account + Get PayPal API Keys ❌
 - Create Unique Admin Logins ❌
 - Reset Password Support (With Email) ❌
