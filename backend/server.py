@@ -1202,6 +1202,20 @@ async def get_analytics(request: Request):
         "pending_quotes": pending_quotes
     }
 
+# ==================== BOOKING ENDPOINTS ====================
+
+@bookings_router.get("/mine")
+async def get_my_bookings(request: Request):
+    user = request.state.user
+    user_email = user["email"]
+
+    bookings = await db.bookings.find(
+        {"email": user_email},
+        {"_id": 0}
+    ).to_list(1000)
+
+    return bookings
+
 # ==================== PAYMENT ENDPOINTS ====================
 
 stripe_api_key = os.environ.get("STRIPE_API_KEY")
