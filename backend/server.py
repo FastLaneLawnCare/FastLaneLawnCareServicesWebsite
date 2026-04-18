@@ -658,16 +658,22 @@ async def create_booking(booking_data: BookingCreate, request: Request):
 
 @api_router.get("/bookings/mine")
 async def get_my_bookings(request: Request):
-    await require_role_at_least(request, "customer")
-    user = request.state.user
-    user_email = user["email"]
+    try:
+        await require_role_at_least(request, "customer")
 
-    bookings = await db.bookings.find(
-        {"email": user_email},
-        {"_id": 0}
-    ).to_list(1000)
+        user = request.state.user
+        print("USER:", user)
 
-    return bookings
+        bookings = await db.bookings.find(
+            {"email": user["email"]},
+            {"_id": 0}
+        ).to_list(1000)
+
+        return bookings
+
+    except Exception as e:
+        print("ERROR:", e)
+        raise e
 
 @api_router.get("/bookings", response_model=List[Booking])
 async def get_bookings(request: Request):
