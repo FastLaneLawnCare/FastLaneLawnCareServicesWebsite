@@ -3,8 +3,8 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 
 ## To Do List 📝
 ### Bookings 📚 
-- [ ] Allign "Book Now" Button more to the left.
-- [ ] resize the Calender parent frame so it doesnt look weird. (theres empty space right now)
+- [x] Allign "Book Now" Button more to the left.
+- [x] resize the Calender parent frame so it doesnt look weird. (theres empty space right now)
 - [ ] Change the Time options to every hour instead of every 30 minutes.
 - [ ] Remove the "House Number" field for the address, instead merge it into one.
 - [ ] Setup PayPal Keys

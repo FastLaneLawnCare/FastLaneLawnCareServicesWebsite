@@ -211,28 +211,29 @@ export default function Booking() {
       if (paymentMethod === 'cash') {
         toast.success('Booking created! Pay cash on service day.');
         setTimeout(() => navigate('/my-account'), 2000);
-      } 
-      
-      else if (paymentMethod === 'stripe') {
-  try {const { data: sessionData } = await axios.post(
-      `${API}/payments/stripe/create-session`, {
-        booking_id: data.booking_id,
-        payment_type: 'stripe'
       }
-    );
 
-    if (!sessionData?.url) {
-      throw new Error("Missing Stripe checkout URL");
-    }
+      else if (paymentMethod === 'stripe') {
+        try {
+          const { data: sessionData } = await axios.post(
+            `${API}/payments/stripe/create-session`, {
+            booking_id: data.booking_id,
+            payment_type: 'stripe'
+          }
+          );
 
-    window.location.href = sessionData.url;
+          if (!sessionData?.url) {
+            throw new Error("Missing Stripe checkout URL");
+          }
 
-  } catch (err) {
-    console.error("Stripe session error:", err);
-    alert("Failed to start Stripe checkout. Please try again.");
-  }
-}
-      
+          window.location.href = sessionData.url;
+
+        } catch (err) {
+          console.error("Stripe session error:", err);
+          alert("Failed to start Stripe checkout. Please try again.");
+        }
+      }
+
       else if (paymentMethod === 'paypal') {
         const { data: paypalData } = await axios.post(`${API}/payments/paypal/create-order`, {
           booking_id: data.booking_id,
@@ -269,9 +270,8 @@ export default function Booking() {
               <div key={s} className="flex items-center flex-1">
                 <div className="flex-1 flex flex-col items-center">
                   <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${
-                      stage >= s ? 'bg-[#CCFF00] text-black' : 'bg-white text-black'
-                    }`}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${stage >= s ? 'bg-[#CCFF00] text-black' : 'bg-white text-black'
+                      }`}
                   >
                     {s + 1}
                   </div>
@@ -307,7 +307,7 @@ export default function Booking() {
             >
               Select Service
             </h2>
-            
+
             <div className="bg-yellow-50 border-2 border-yellow-600 p-4 mb-6">
               <p className="text-sm font-semibold text-yellow-900">
                 <strong>Note:</strong> Prices may vary based on property size and job complexity. Larger properties or more demanding tasks will incur additional charges. "Starting at" prices shown are base rates.
@@ -320,11 +320,10 @@ export default function Booking() {
                   key={service.id}
                   data-testid={`service-${service.id}`}
                   onClick={() => handleServiceSelect(service)}
-                  className={`w-full p-6 border-2 border-black text-left transition-all duration-150 ${
-                    selectedService === service.id
-                      ? 'bg-[#CCFF00] text-black'
-                      : 'bg-white text-black hover:bg-[#E4E4E7]'
-                  }`}
+                  className={`w-full p-6 border-2 border-black text-left transition-all duration-150 ${selectedService === service.id
+                    ? 'bg-[#CCFF00] text-black'
+                    : 'bg-white text-black hover:bg-[#E4E4E7]'
+                    }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -362,7 +361,7 @@ export default function Booking() {
               Select Date
             </h2>
             <div className="border-2 border-black p-4 sm:p-6 flex justify-center">
-              <div className="w-full max-w-md">
+              <div className="w-fit mx-auto">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -372,7 +371,7 @@ export default function Booking() {
                     currentDate.setHours(0, 0, 0, 0);
                     return currentDate < minimumBookingDate;
                   }}
-                  className="w-full scale-90 sm:scale-100"
+                  className="w-fit"
                   classNames={{
                     months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                     month: "space-y-4",
@@ -421,24 +420,23 @@ export default function Booking() {
                 (() => {
                   const isOccupied = occupiedSlots.includes(time);
                   return (
-                <button
-                  key={time}
-                  data-testid={`time-slot-${time}`}
-                  onClick={() => {
-                    if (isOccupied) return;
-                    setSelectedTime(time);
-                  }}
-                  disabled={isOccupied}
-                  className={`py-4 px-6 border-2 border-black font-bold uppercase text-sm transition-all duration-150 ${
-                    isOccupied
-                      ? 'bg-[#E4E4E7] text-[#71717A] cursor-not-allowed'
-                      : selectedTime === time
-                      ? 'bg-[#CCFF00] text-black'
-                      : 'bg-white text-black hover:bg-[#E4E4E7]'
-                  }`}
-                >
-                  {isOccupied ? 'OCCUPIED' : time}
-                </button>
+                    <button
+                      key={time}
+                      data-testid={`time-slot-${time}`}
+                      onClick={() => {
+                        if (isOccupied) return;
+                        setSelectedTime(time);
+                      }}
+                      disabled={isOccupied}
+                      className={`py-4 px-6 border-2 border-black font-bold uppercase text-sm transition-all duration-150 ${isOccupied
+                        ? 'bg-[#E4E4E7] text-[#71717A] cursor-not-allowed'
+                        : selectedTime === time
+                          ? 'bg-[#CCFF00] text-black'
+                          : 'bg-white text-black hover:bg-[#E4E4E7]'
+                        }`}
+                    >
+                      {isOccupied ? 'OCCUPIED' : time}
+                    </button>
                   );
                 })()
               ))}
@@ -462,7 +460,7 @@ export default function Booking() {
             >
               Your Details
             </h2>
-            
+
             {!showMap ? (
               <div className="space-y-6">
                 {/* Name Fields - Side by Side */}
@@ -494,7 +492,7 @@ export default function Booking() {
                 {/* Service Address */}
                 <div className="border-2 border-black p-4 bg-[#F4F4F5]">
                   <h3 className="font-bold uppercase text-sm mb-4">Service Address</h3>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block font-semibold uppercase text-xs mb-2">House/Building Number *</label>
@@ -602,7 +600,7 @@ export default function Booking() {
                     {details.houseNumber} {details.streetName}{details.aptNumber ? ` ${details.aptNumber}` : ''}<br />
                     {details.city}, IL {details.zipCode}
                   </p>
-                  
+
                   <div className="border-2 border-black h-64 bg-gray-200 flex items-center justify-center">
                     <iframe
                       width="100%"
@@ -667,33 +665,30 @@ export default function Booking() {
               <button
                 data-testid="payment-method-stripe"
                 onClick={() => setPaymentMethod('stripe')}
-                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${
-                  paymentMethod === 'stripe'
-                    ? 'bg-[#CCFF00] text-black'
-                    : 'bg-white text-black hover:bg-[#E4E4E7]'
-                }`}
+                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${paymentMethod === 'stripe'
+                  ? 'bg-[#CCFF00] text-black'
+                  : 'bg-white text-black hover:bg-[#E4E4E7]'
+                  }`}
               >
                 Pay with Stripe (Card)
               </button>
               <button
                 data-testid="payment-method-paypal"
                 onClick={() => setPaymentMethod('paypal')}
-                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${
-                  paymentMethod === 'paypal'
-                    ? 'bg-[#CCFF00] text-black'
-                    : 'bg-white text-black hover:bg-[#E4E4E7]'
-                }`}
+                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${paymentMethod === 'paypal'
+                  ? 'bg-[#CCFF00] text-black'
+                  : 'bg-white text-black hover:bg-[#E4E4E7]'
+                  }`}
               >
                 Pay with PayPal
               </button>
               <button
                 data-testid="payment-method-cash"
                 onClick={() => setPaymentMethod('cash')}
-                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${
-                  paymentMethod === 'cash'
-                    ? 'bg-[#CCFF00] text-black'
-                    : 'bg-white text-black hover:bg-[#E4E4E7]'
-                }`}
+                className={`w-full py-6 px-6 border-2 border-black font-bold uppercase text-lg transition-all duration-150 text-left ${paymentMethod === 'cash'
+                  ? 'bg-[#CCFF00] text-black'
+                  : 'bg-white text-black hover:bg-[#E4E4E7]'
+                  }`}
               >
                 Pay Cash on Service Day
               </button>
