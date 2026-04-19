@@ -278,9 +278,14 @@ export default function Booking() {
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-5 mt-2">
+          <div className="flex justify-between mt-2">
             {BOOKING_STAGES.map((stageLabel) => (
-              <span key={stageLabel} className="text-xs font-semibold uppercase text-center">{stageLabel}</span>
+              <span
+                key={stageLabel}
+                className="flex-1 text-center text-xs font-semibold uppercase"
+              >
+                {stageLabel}
+              </span>
             ))}
           </div>
         </div>
