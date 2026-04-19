@@ -22,7 +22,6 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Fix Total booking text. (currently displays total bookings globally)
 - [ ] Reset Password Support (With Email)
 - [x] Add an option for clients to cancel bookings that were set to be paid with cash
-- [x]  Add an option for clients to cancel bookings that were set to be paid with cash
 ### Admin Dashboard 👑
 - [x] Add a Logout Button.
 - [ ] Have the "Staff Dashboard" button instead display their role (Ex. CEO DASHBOARD)

@@ -804,10 +804,7 @@ async def cancel_booking(booking_id: str, request: Request):
     if booking_date <= datetime.now(timezone.utc).date() + timedelta(days=2):
         raise HTTPException(status_code=400, detail="Cannot cancel a booking within 2 days of the service date")
     
-    await db.bookings.update_one(
-        {"booking_id": booking_id},
-        {"$set": {"booking_status": "cancelled"}}
-    )
+    await db.bookings.delete_one({"booking_id": booking_id})
     
     return {"message": "Booking cancelled"}
 

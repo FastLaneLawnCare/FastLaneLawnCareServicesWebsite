@@ -491,8 +491,9 @@ export default function MyAccount() {
 }
 
 function StatusPill({ label, active }) {
+  const isCancelled = label?.toLowerCase() === 'cancelled';
   return (
-    <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${active ? 'bg-[#CCFF00]' : 'bg-white'}`}>
+    <span className={`px-3 py-1 text-xs font-bold uppercase border-2 border-black ${isCancelled ? 'bg-[#FFB3B3]' : active ? 'bg-[#CCFF00]' : 'bg-white'}`}>
       {label}
     </span>
   );
