@@ -765,6 +765,40 @@ async def delete_booking(booking_id: str, request: Request):
     
     return {"message": "Booking deleted"}
 
+@api_router.post("/bookings/{booking_id}/cancel")
+async def cancel_booking(booking_id: str, request: Request):
+    user = await get_current_user(request)
+    
+    booking = await db.bookings.find_one({"booking_id": booking_id}, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("user_id") != user.get("user_id"):
+        raise HTTPException(status_code=403, detail="Not authorized to cancel this booking")
+    
+    if booking.get("booking_status") == "cancelled":
+        raise HTTPException(status_code=400, detail="Booking is already cancelled")
+    
+    if booking.get("booking_status") == "completed":
+        raise HTTPException(status_code=400, detail="Cannot cancel a completed booking")
+    
+    if booking.get("payment_method", "").lower() != "cash":
+        raise HTTPException(status_code=400, detail="Only cash bookings can be cancelled by clients")
+    
+    if booking.get("payment_status") == "paid":
+        raise HTTPException(status_code=400, detail="Cannot cancel a paid booking")
+    
+    booking_date = datetime.strptime(booking.get("date", ""), "%Y-%m-%d").date()
+    if booking_date <= datetime.now(timezone.utc).date() + timedelta(days=2):
+        raise HTTPException(status_code=400, detail="Cannot cancel a booking within 2 days of the service date")
+    
+    await db.bookings.update_one(
+        {"booking_id": booking_id},
+        {"$set": {"booking_status": "cancelled"}}
+    )
+    
+    return {"message": "Booking cancelled"}
+
 # ==================== QUOTE ENDPOINTS ====================
 
 @api_router.post("/quotes", response_model=Quote)

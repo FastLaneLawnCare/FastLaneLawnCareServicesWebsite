@@ -18,6 +18,7 @@ export default function MyAccount() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
 
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -128,6 +129,21 @@ export default function MyAccount() {
       toast.success('Profile updated');
     } else {
       toast.error(result.error);
+    }
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    
+    setCancellingId(bookingId);
+    try {
+      await axios.post(`${API}/bookings/${bookingId}/cancel`, {}, { withCredentials: true });
+      toast.success('Booking cancelled');
+      fetchAccountData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to cancel booking');
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -251,6 +267,15 @@ export default function MyAccount() {
                       <IconRow icon={MapPin} text={booking.address} />
                       <IconRow icon={CreditCard} text={(booking.payment_method || '').toUpperCase()} />
                     </div>
+                    {canCancelBooking(booking) && (
+                      <button
+                        onClick={() => handleCancelBooking(booking.booking_id)}
+                        disabled={cancellingId === booking.booking_id}
+                        className="mt-4 px-4 py-2 bg-white text-red-600 border-2 border-red-600 font-bold uppercase text-sm hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+                      >
+                        {cancellingId === booking.booking_id ? 'Cancelling...' : 'Cancel Booking'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -465,4 +490,17 @@ function EmptyState({ title, description, actionLabel, onAction }) {
       )}
     </div>
   );
+}
+
+function canCancelBooking(booking) {
+  if (booking.payment_method?.toLowerCase() !== 'cash') return false;
+  if (booking.booking_status === 'cancelled' || booking.booking_status === 'completed') return false;
+  if (booking.payment_status === 'paid') return false;
+  
+  const bookingDate = new Date(booking.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
+  
+  return daysUntil > 2;
 }
