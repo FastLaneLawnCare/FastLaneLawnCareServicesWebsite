@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { FileText, Calendar, Users, ChartBar, X } from '@phosphor-icons/react';
+import { FileText, Calendar, Users, X } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -323,7 +323,6 @@ export default function AdminDashboard() {
           {[
             { label: 'Total Bookings', value: analytics?.total_bookings || 0, icon: Calendar },
             { label: 'Total Clients', value: analytics?.total_customers || 0, icon: Users },
-            { label: 'Total Earnings', value: `$${analytics?.total_earnings || 0}`, icon: ChartBar },
             { label: 'Pending Quotes', value: analytics?.pending_quotes || 0, icon: FileText }
           ].map((stat, idx) => (
             <div
