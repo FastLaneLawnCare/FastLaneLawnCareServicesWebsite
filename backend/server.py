@@ -139,31 +139,35 @@ logger = logging.getLogger(__name__)
 
 # ==================== MODELS ====================
 
-def send_resend_email(to_email: str, subject: str, html: str) -> None:
+def send_resend_email(to_email: str, subject: str, html: str = None, template_id: str = None, template_vars: dict = None) -> None:
+    import resend
+    
     resend_api_key = os.environ.get("RESEND_API_KEY")
     if not resend_api_key:
         logger.warning("RESEND_API_KEY is not configured; skipping email send.")
         return
 
-    sender_email = os.environ.get("RESEND_FROM_EMAIL", "mail@fastlanelawn.com")
+    sender_email = os.environ.get("RESEND_FROM_EMAIL", "Fast Lane Lawn Care <mail@fastlanelawn.com>")
+    resend.api_key = resend_api_key
+
+    email_params = {
+        "from": sender_email,
+        "to": [to_email],
+        "subject": subject,
+    }
+
+    if template_id and template_vars:
+        email_params["template"] = {
+            "id": template_id,
+            "variables": template_vars
+        }
+    elif html:
+        email_params["html"] = html
 
     try:
-        response = requests.post(
-            "https://api.resend.com/emails",
-            headers={
-                "Authorization": f"Bearer {resend_api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "from": sender_email,
-                "to": [to_email],
-                "subject": subject,
-                "html": html,
-            },
-            timeout=10,
-        )
-        if response.status_code >= 400:
-            logger.error("Resend email failed (%s): %s", response.status_code, response.text)
+        response = resend.Emails.send(email_params)
+        if response.get("error"):
+            logger.error("Resend email failed: %s", response.get("error"))
     except Exception as email_error:
         logger.error("Resend email exception: %s", email_error)
 
@@ -171,25 +175,23 @@ def send_resend_email(to_email: str, subject: str, html: str) -> None:
 def send_booking_emails(booking_doc: dict) -> None:
     owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
     customer_email = booking_doc.get("email")
+    template_id = os.environ.get("RESEND_TEMPLATE_ID")
+
+    template_vars = {
+        "booking_id": booking_doc.get("booking_id"),
+        "appointment_date": booking_doc.get("date"),
+        "appointment_time": booking_doc.get("time"),
+        "service_address": booking_doc.get("address"),
+        "payment_method": booking_doc.get("payment_method", "").upper(),
+        "payment_amount": booking_doc.get("amount"),
+    }
 
     if customer_email:
         send_resend_email(
             customer_email,
-            "Booking Received - Fast Lane Lawn Care",
-            f"""
-            <h2>Booking Confirmed</h2>
-            <p>Hi {booking_doc.get('name', 'Customer')},</p>
-            <p>We received your booking request.</p>
-            <ul>
-              <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
-              <li><strong>Date:</strong> {booking_doc.get('date')}</li>
-              <li><strong>Time:</strong> {booking_doc.get('time')}</li>
-              <li><strong>Address:</strong> {booking_doc.get('address')}</li>
-              <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
-              <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
-            </ul>
-            <p>We will follow up soon.</p>
-            """,
+            "Your Fast Lane Lawn Care Booking Is Confirmed",
+            template_id=template_id,
+            template_vars=template_vars,
         )
 
     if owner_email:
