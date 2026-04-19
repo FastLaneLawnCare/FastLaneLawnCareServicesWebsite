@@ -319,7 +319,7 @@ export default function AdminDashboard() {
         {canViewAdminData && (
         <>
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" data-testid="analytics-section">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" data-testid="analytics-section">
           {[
             { label: 'Total Bookings', value: analytics?.total_bookings || 0, icon: Calendar },
             { label: 'Total Clients', value: analytics?.total_customers || 0, icon: Users },
