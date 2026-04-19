@@ -14,6 +14,12 @@
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/preview.png",
+      "type": "image/png",
+      "sizes": "1301x423",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
@@ -27,8 +33,8 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshot1.png",
-      "sizes": "540x720",
+      "src": "/preview.png",
+      "sizes": "1301x423",
       "type": "image/png"
     }
   ]
