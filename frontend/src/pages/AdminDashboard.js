@@ -342,11 +342,11 @@ export default function AdminDashboard() {
         <Tabs defaultValue="invoices" className="w-full">
           <TabsList className="grid w-full grid-cols-4 border-2 border-black bg-white p-0">
             <TabsTrigger
-              value="invoices"
-              data-testid="tab-invoices"
+              value="bookings"
+              data-testid="tab-bookings"
               className="data-[state=active]:bg-[#CCFF00] border-r-2 border-black font-bold uppercase"
             >
-              Invoices
+              Bookings
             </TabsTrigger>
             <TabsTrigger
               value="quotes"
@@ -356,11 +356,11 @@ export default function AdminDashboard() {
               Quotes
             </TabsTrigger>
             <TabsTrigger
-              value="bookings"
-              data-testid="tab-bookings"
+              value="invoices"
+              data-testid="tab-invoices"
               className="data-[state=active]:bg-[#CCFF00] border-r-2 border-black font-bold uppercase"
             >
-              Bookings
+              Invoices
             </TabsTrigger>
             <TabsTrigger
               value="staff"
