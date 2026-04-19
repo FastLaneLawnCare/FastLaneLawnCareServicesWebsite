@@ -773,7 +773,9 @@ async def cancel_booking(booking_id: str, request: Request):
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     
-    if booking.get("user_id") != user.get("user_id"):
+    user_email = user.get("email", "").lower()
+    booking_email = booking.get("email", "").lower()
+    if booking_email != user_email:
         raise HTTPException(status_code=403, detail="Not authorized to cancel this booking")
     
     if booking.get("booking_status") == "cancelled":

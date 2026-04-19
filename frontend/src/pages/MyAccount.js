@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../components/ui/alert-dialog';
 import { Calendar, Clock, CreditCard, FileText, House, MapPin, Phone, Receipt } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
@@ -53,12 +52,16 @@ export default function MyAccount() {
         setQuotes(ensureArray(quotesRes.data));
         setInvoices(ensureArray(invoicesRes.data));
       } catch (error) {
+        if (error.response?.status === 401) {
+          navigate('/login', { state: { from: '/my-account' } });
+          return;
+        }
         console.error('Failed to fetch account data:', error);
         toast.error('Failed to load your account');
       } finally {
         setLoading(false);
       }
-    }, []);
+    }, [navigate]);
 
   const checkPaymentStatus = useCallback(async () => {
     const sessionId = searchParams.get('session_id');
@@ -278,33 +281,13 @@ export default function MyAccount() {
                       <IconRow icon={CreditCard} text={(booking.payment_method || '').toUpperCase()} />
                     </div>
                     {canCancelBooking(booking) && (
-                      <AlertDialog open={cancelDialogOpen && selectedBookingId === booking.booking_id} onOpenChange={(open) => {
-                        if (!open) {
-                          setCancelDialogOpen(false);
-                          setSelectedBookingId(null);
-                        }
-                      }}>
-                        <AlertDialogTrigger asChild>
-                          <button
-                            disabled={cancellingId === booking.booking_id}
-                            className="mt-4 px-4 py-2 bg-white text-red-600 border-2 border-red-600 font-bold uppercase text-sm hover:bg-red-600 hover:text-white transition disabled:opacity-50"
-                          >
-                            Cancel Booking
-                          </button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to cancel this booking? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Keep Booking</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleCancelBooking}>Yes, Cancel</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <button
+                        onClick={() => openCancelDialog(booking.booking_id)}
+                        disabled={cancellingId === booking.booking_id}
+                        className="mt-4 px-4 py-2 bg-white text-red-600 border-2 border-red-600 font-bold uppercase text-sm hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+                      >
+                        Cancel Booking
+                      </button>
                     )}
                   </div>
                 ))}
@@ -484,6 +467,19 @@ export default function MyAccount() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <CancelDialog
+        open={cancelDialogOpen}
+        onCancel={handleCancelBooking}
+        onClose={() => {
+          setCancelDialogOpen(false);
+          setSelectedBookingId(null);
+        }}
+        title="Cancel Booking?"
+        description="Are you sure you want to cancel this booking? This action cannot be undone."
+        confirmText="Yes, Cancel"
+        cancelText="Keep Booking"
+      />
     </div>
   );
 }
@@ -533,4 +529,32 @@ function canCancelBooking(booking) {
   const daysUntil = Math.ceil((bookingDate - today) / (1000 * 60 * 60 * 24));
   
   return daysUntil > 2;
+}
+
+function CancelDialog({ open, onCancel, onClose, title, description, confirmText, cancelText }) {
+  if (!open) return null;
+  
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black/80" onClick={onClose}></div>
+      <div className="relative bg-white border-2 border-black p-6 shadow-lg max-w-lg w-full mx-4">
+        <h2 className="text-xl font-bold uppercase mb-2">{title}</h2>
+        <p className="text-[#71717A] mb-6">{description}</p>
+        <div className="flex gap-4 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border-2 border-black font-bold uppercase hover:bg-black hover:text-white transition"
+          >
+            {cancelText}
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 bg-red-600 text-white border-2 border-red-600 font-bold uppercase hover:bg-red-700 transition"
+          >
+            {confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
