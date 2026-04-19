@@ -281,23 +281,17 @@ export default function Booking() {
             {/* steps */}
             <div className="relative flex justify-between">
               {BOOKING_STAGES.map((label, i) => (
-                <div key={i} className="flex flex-col items-center">
-
-                  <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black ${stage >= i ? 'bg-[#CCFF00]' : 'bg-white'
-                      }`}
-                  >
-                    {i + 1}
-                  </div>
-
-                  <span className="mt-2 text-xs font-semibold uppercase text-center">
-                    {label}
-                  </span>
-
+                <div
+                  key={i}
+                  onClick={() => {
+                    if (i <= stage) setStage(i);
+                  }}
+                  className={`flex flex-col items-center cursor-pointer ${i <= stage ? 'opacity-100' : 'opacity-40 cursor-not-allowed'
+                    }`}
+                >
                 </div>
               ))}
             </div>
-
           </div>
         </div>
 
