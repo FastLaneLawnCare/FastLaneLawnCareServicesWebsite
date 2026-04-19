@@ -287,7 +287,7 @@ export default function Booking() {
                 {/* Line */}
                 {s < BOOKING_STAGES.length - 1 && (
                   <div
-                    className={`w-12 sm:w-20 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
+                    className={`flex-1 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
                       }`}
                   />
                 )}
