@@ -33,6 +33,29 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+async def get_next_booking_number():
+    counter = await db.counters.find_one_and_update(
+        {"_id": "booking_counter"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True
+    )
+    return counter["seq"]
+
+async def initialize_booking_counter():
+    existing = await db.counters.find_one({"_id": "booking_counter"})
+    if not existing:
+        last_booking = await db.bookings.find_one(sort=[("created_at", -1)])
+        start_seq = 1
+        if last_booking and "booking_id" in last_booking:
+            try:
+                parts = last_booking["booking_id"].split("-")
+                if len(parts) >= 2:
+                    start_seq = int(parts[-1]) + 1
+            except:
+                pass
+        await db.counters.insert_one({"_id": "booking_counter", "seq": start_seq})
+
 # Create the main app
 
 from fastapi import FastAPI, APIRouter
@@ -627,7 +650,8 @@ async def create_booking(booking_data: BookingCreate, request: Request):
     except:
         user_id = None
     
-    booking_id = f"FL{datetime.now(timezone.utc).strftime('%m%d%y')}{secrets.token_hex(3).upper()}"
+    booking_seq = await get_next_booking_number()
+    booking_id = f"FL{datetime.now(timezone.utc).strftime('%m%d%y')}-{booking_seq:04d}"
     
     booking_doc = {
         "booking_id": booking_id,
@@ -1474,6 +1498,7 @@ async def startup():
     
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")
+    await initialize_booking_counter()
     
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@fastlanelawn.com")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
