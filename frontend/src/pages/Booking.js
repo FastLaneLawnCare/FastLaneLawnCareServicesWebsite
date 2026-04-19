@@ -353,7 +353,7 @@ export default function Booking() {
         {stage === 1 && (
           <div data-testid="stage-1">
             <h2
-              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-8"
+              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-8 text-center w-full"
               style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
             >
               Select Date
@@ -407,7 +407,7 @@ export default function Booking() {
         {stage === 2 && (
           <div data-testid="stage-2">
             <h2
-              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-4"
+              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-4 text-center w-full"
               style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
             >
               Select Time
@@ -453,7 +453,7 @@ export default function Booking() {
         {stage === 3 && (
           <div data-testid="stage-3">
             <h2
-              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-8"
+              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-8 text-center w-full"
               style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
             >
               Your Details
@@ -491,7 +491,7 @@ export default function Booking() {
                 <div className="border-2 border-black p-4 bg-[#F4F4F5]">
                   <h3 className="font-bold uppercase text-sm mb-4">Service Address</h3>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 text-center w-full">
                     <div>
                       <label className="block font-semibold uppercase text-xs mb-2">House/Building Number *</label>
                       <input
@@ -639,7 +639,7 @@ export default function Booking() {
         {stage === 4 && (
           <div data-testid="stage-4">
             <h2
-              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-4"
+              className="text-3xl sm:text-4xl font-black tracking-tight uppercase mb-4 text-center w-full"
               style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}
             >
               Payment Method
