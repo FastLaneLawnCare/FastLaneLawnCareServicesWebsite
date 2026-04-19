@@ -339,7 +339,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="invoices" className="w-full">
+        <Tabs defaultValue="bookings" className="w-full">
           <TabsList className="grid w-full grid-cols-4 border-2 border-black bg-white p-0">
             <TabsTrigger
               value="bookings"
