@@ -263,33 +263,38 @@ export default function Booking() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         {/* Progress Indicator */}
         <div className="mb-12" data-testid="progress-indicator">
-          <div className="flex justify-between items-center">
+          <div className="flex items-start justify-between">
             {BOOKING_STAGES.map((stageLabel, s) => (
-              <div key={s} className="flex items-center flex-1">
-                <div className="flex-1 flex flex-col items-center">
+              <div key={s} className="flex flex-1 items-center">
+
+                {/* STEP */}
+                <div className="flex flex-col items-center flex-1">
+
+                  {/* Number */}
                   <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black text-base sm:text-lg ${stage >= s ? 'bg-[#CCFF00] text-black' : 'bg-white text-black'
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black ${stage >= s ? 'bg-[#CCFF00]' : 'bg-white'
                       }`}
                   >
                     {s + 1}
                   </div>
+
+                  {/* Label */}
+                  <span className="mt-2 text-xs font-semibold uppercase text-center">
+                    {stageLabel}
+                  </span>
                 </div>
-                {s < 4 && <div className={`flex-1 h-1 mx-1 sm:mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'}`}></div>}
+
+                {/* Line */}
+                {s < BOOKING_STAGES.length - 1 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
+                      }`}
+                  />
+                )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-2">
-            {BOOKING_STAGES.map((stageLabel) => (
-              <span
-                key={stageLabel}
-                className="flex-1 text-center text-xs font-semibold uppercase"
-              >
-                {stageLabel}
-              </span>
-            ))}
-          </div>
         </div>
-
 
         {/* Stage 0: Service Selection */}
         {stage === 0 && (
