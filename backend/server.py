@@ -179,7 +179,7 @@ def send_resend_email(to_email: str, subject: str, html: str = None, template_id
 
 def send_booking_emails(booking_doc: dict) -> None:
     try:
-        owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
+        owner_email = os.environ.get("OWNER_EMAIL")
         customer_email = booking_doc.get("email")
         template_id = os.environ.get("RESEND_TEMPLATE_ID", "").strip() or None
 
@@ -244,7 +244,7 @@ def send_booking_emails(booking_doc: dict) -> None:
 
 
 def send_quote_emails(quote_doc: dict) -> None:
-    owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
+    owner_email = os.environ.get("OWNER_EMAIL")
     customer_email = quote_doc.get("email")
 
     if customer_email:
@@ -279,6 +279,7 @@ def send_quote_emails(quote_doc: dict) -> None:
             </ul>
             """,
         )
+
 
 class User(BaseModel):
     user_id: str
