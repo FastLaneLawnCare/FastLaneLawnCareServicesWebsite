@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../components/ui/alert-dialog';
 import { Calendar, Clock, CreditCard, FileText, House, MapPin, Phone, Receipt } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
@@ -19,6 +20,8 @@ export default function MyAccount() {
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
 
   const [profileForm, setProfileForm] = useState({
     name: '',
@@ -132,19 +135,26 @@ export default function MyAccount() {
     }
   };
 
-  const handleCancelBooking = async (bookingId) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
+  const handleCancelBooking = async () => {
+    if (!selectedBookingId) return;
     
-    setCancellingId(bookingId);
+    setCancellingId(selectedBookingId);
+    setCancelDialogOpen(false);
     try {
-      await axios.post(`${API}/bookings/${bookingId}/cancel`, {}, { withCredentials: true });
+      await axios.post(`${API}/bookings/${selectedBookingId}/cancel`, {}, { withCredentials: true });
       toast.success('Booking cancelled');
       fetchAccountData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to cancel booking');
     } finally {
       setCancellingId(null);
+      setSelectedBookingId(null);
     }
+  };
+
+  const openCancelDialog = (bookingId) => {
+    setSelectedBookingId(bookingId);
+    setCancelDialogOpen(true);
   };
 
   if (authLoading || loading) {
@@ -268,13 +278,33 @@ export default function MyAccount() {
                       <IconRow icon={CreditCard} text={(booking.payment_method || '').toUpperCase()} />
                     </div>
                     {canCancelBooking(booking) && (
-                      <button
-                        onClick={() => handleCancelBooking(booking.booking_id)}
-                        disabled={cancellingId === booking.booking_id}
-                        className="mt-4 px-4 py-2 bg-white text-red-600 border-2 border-red-600 font-bold uppercase text-sm hover:bg-red-600 hover:text-white transition disabled:opacity-50"
-                      >
-                        {cancellingId === booking.booking_id ? 'Cancelling...' : 'Cancel Booking'}
-                      </button>
+                      <AlertDialog open={cancelDialogOpen && selectedBookingId === booking.booking_id} onOpenChange={(open) => {
+                        if (!open) {
+                          setCancelDialogOpen(false);
+                          setSelectedBookingId(null);
+                        }
+                      }}>
+                        <AlertDialogTrigger asChild>
+                          <button
+                            disabled={cancellingId === booking.booking_id}
+                            className="mt-4 px-4 py-2 bg-white text-red-600 border-2 border-red-600 font-bold uppercase text-sm hover:bg-red-600 hover:text-white transition disabled:opacity-50"
+                          >
+                            Cancel Booking
+                          </button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Cancel Booking?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to cancel this booking? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Keep Booking</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleCancelBooking}>Yes, Cancel</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     )}
                   </div>
                 ))}
