@@ -54,9 +54,9 @@ export default function Booking() {
     { id: 'junk_removal_house', name: 'Junk Removal - Full House', description: 'Complete house junk removal', price: 350, note: 'Starting at' },
     { id: 'junk_removal_garage', name: 'Junk Removal - Garage/Shed/Storage', description: 'Garage, shed & storage units', price: 150, note: 'Starting at' },
     { id: 'junk_removal_sidewalk', name: 'Junk Removal - Sidewalk', description: 'Sidewalk junk removal', price: 25, note: 'Starting at' },
-    { id: 'scrap_metal', name: 'Free Scrap/Junk Metal Pickup', description: 'Free pickup of scrap metal', price: 0 },
     { id: 'yard_cleanup', name: 'Yard Cleanup', description: 'Includes: Leaves & sticks removal & raking', price: 35, note: 'Starting at' },
-    { id: 'snow_removal', name: 'Snow Removal', description: 'Professional snow removal service', price: 30, note: 'Starting at' }
+    //{ id: 'snow_removal', name: 'Snow Removal', description: 'Professional snow removal service', price: 30, note: 'Starting at' },
+    { id: 'scrap_metal', name: 'Free Scrap/Junk Metal Pickup', description: 'Free pickup of scrap metal', price: 0 }
   ];
   const isFirstStage = stage === FIRST_STAGE_INDEX;
   const minimumBookingDate = new Date();
