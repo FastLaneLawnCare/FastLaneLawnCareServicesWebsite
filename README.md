@@ -8,7 +8,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [x] Change the Time options to every hour instead of every 30 minutes.
 - [ ] Remove the "House Number" field for the address, instead merge it into one.
 - [ ] Setup PayPal Keys
-- [ ] Replace random booking IDs with checkout IDs. (Must match email booking ID sent to customer)
+- [x] Replace random booking IDs with checkout IDs. (Must match email booking ID sent to customer)
 - [x] Move "Scrap Pickup" to the bottom.
 - [ ] Change the "Quote" button color to green.
 - [x] Center the text for the stage titles.
@@ -25,7 +25,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 ### Admin Dashboard 👑
 - [ ] Add a Logout Button.
 - [ ] Have the "Staff Dashboard" button instead display their role (Ex. CEO DASHBOARD)
-- [ ] Remove delete capability for bookings. (CEO-only function)
+- [x] Remove delete capability for bookings. (CEO-only function)
 - [ ] Staff Section pay rate settings should be hidden from everybody but the CEO. (Currently greyed out, but still visible)
 - [ ] Add manual controls to change Booking status for if the booking has been Confirmed and if the payment has went through.
 - [ ] Reorder the buttons (Bookings, Quotes, Invoices, Staff)

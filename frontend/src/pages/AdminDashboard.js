@@ -647,14 +647,15 @@ export default function AdminDashboard() {
                     <p><span className="text-[#71717A]">Address:</span> {booking.address}</p>
                     <p><span className="text-[#71717A]">Amount:</span> <span className="font-bold">${booking.amount}</span></p>
                   </div>
+                  {isCEO && (
                   <button
                     onClick={() => handleBookingDelete(booking.booking_id)}
-                    disabled={!isCEO}
                     className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white border-2 border-black font-bold uppercase text-sm hover:bg-red-700 transition"
                     data-testid={`delete-booking-${booking.booking_id}`}
                   >
                     Delete
                   </button>
+                  )}
                 </div>
               ))}
             </div>
