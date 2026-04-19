@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@craco/craco": "^5.9.0",
-    "cors": "^2.8.6"
+    "cors": "^2.8.6",
+    "motion": "^12.38.0"
   }
 }

@@ -263,36 +263,41 @@ export default function Booking() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         {/* Progress Indicator */}
         <div className="mb-12" data-testid="progress-indicator">
-          <div className="flex items-start justify-center gap-6">
-            {BOOKING_STAGES.map((stageLabel, s) => (
-              <div key={s} className="flex items-center w-full">
 
-                {/* STEP */}
-                <div className="flex flex-col items-center">
+          {/* wrapper */}
+          <div className="relative mx-auto max-w-3xl">
 
-                  {/* Number */}
+            {/* background line */}
+            <div className="absolute top-5 left-0 w-full h-1 bg-[#E4E4E7]" />
+
+            {/* active progress line */}
+            <div
+              className="absolute top-5 left-0 h-1 bg-[#CCFF00] transition-all duration-300"
+              style={{
+                width: `${(stage / (BOOKING_STAGES.length - 1)) * 100}%`
+              }}
+            />
+
+            {/* steps */}
+            <div className="relative flex justify-between">
+              {BOOKING_STAGES.map((label, i) => (
+                <div key={i} className="flex flex-col items-center">
+
                   <div
-                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black ${stage >= s ? 'bg-[#CCFF00]' : 'bg-white'
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-black flex items-center justify-center font-black ${stage >= i ? 'bg-[#CCFF00]' : 'bg-white'
                       }`}
                   >
-                    {s + 1}
+                    {i + 1}
                   </div>
 
-                  {/* Label */}
                   <span className="mt-2 text-xs font-semibold uppercase text-center">
-                    {stageLabel}
+                    {label}
                   </span>
-                </div>
 
-                {/* Line */}
-                {s < BOOKING_STAGES.length - 1 && (
-                  <div
-                    className={`flex-1 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
-                      }`}
-                  />
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
 
