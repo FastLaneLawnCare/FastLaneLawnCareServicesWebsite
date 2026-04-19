@@ -265,7 +265,7 @@ export default function Booking() {
         <div className="mb-12" data-testid="progress-indicator">
           <div className="flex items-start justify-center gap-6">
             {BOOKING_STAGES.map((stageLabel, s) => (
-              <div key={s} className="flex items-center">
+              <div key={s} className="flex items-center w-full">
 
                 {/* STEP */}
                 <div className="flex flex-col items-center">
@@ -285,10 +285,12 @@ export default function Booking() {
                 </div>
 
                 {/* Line */}
-                <div
-                  className={`w-12 sm:w-20 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
-                    }`}
-                />
+                {s < BOOKING_STAGES.length - 1 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 ${stage > s ? 'bg-[#CCFF00]' : 'bg-[#E4E4E7]'
+                      }`}
+                  />
+                )}
               </div>
             ))}
           </div>
