@@ -236,7 +236,7 @@ export default function MyAccount() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start mb-4">
                       <div>
                         <h3 className="text-xl font-black uppercase" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
-                          Booking #{booking.booking_id.slice(-8).toUpperCase()}
+                          Booking #{booking.booking_id}
                         </h3>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           <StatusPill label={booking.payment_status} active={booking.payment_status === 'paid'} />

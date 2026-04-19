@@ -627,7 +627,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
     except:
         user_id = None
     
-    booking_id = f"booking_{uuid.uuid4().hex[:12]}"
+    booking_id = f"FL{datetime.now(timezone.utc).strftime('%m%d%y')}{secrets.token_hex(3).upper()}"
     
     booking_doc = {
         "booking_id": booking_id,

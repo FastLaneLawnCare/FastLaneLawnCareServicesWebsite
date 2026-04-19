@@ -625,7 +625,7 @@ export default function AdminDashboard() {
                 <div key={booking.booking_id} className="border-2 border-black p-4 bg-white" data-testid={`booking-${booking.booking_id}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <p className="font-mono text-sm font-bold">#{booking.booking_id.slice(-8).toUpperCase()}</p>
+                      <p className="font-mono text-sm font-bold">#{booking.booking_id}</p>
                       <p className="font-semibold mt-1">{booking.name}</p>
                     </div>
                     <div className="flex gap-2">
