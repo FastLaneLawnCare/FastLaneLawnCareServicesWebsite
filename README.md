@@ -9,7 +9,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Remove the "House Number" field for the address, instead merge it into one.
 - [ ] Setup PayPal Keys
 - [ ] Replace random booking IDs with checkout IDs. (Must match email booking ID sent to customer)
-- [ ] Move "Scrap Pickup" to the bottom.
+- [x] Move "Scrap Pickup" to the bottom.
 - [ ] Change the "Quote" button color to green.
 - [x] Center the text for the stage titles.
 - [x] Fix the grey line cutting off
