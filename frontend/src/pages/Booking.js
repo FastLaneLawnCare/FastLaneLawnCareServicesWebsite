@@ -14,7 +14,7 @@ const LAST_STAGE_INDEX = BOOKING_STAGES.length - 1;
 const MIN_BOOKING_DAYS_AHEAD = 2;
 
 const TIME_SLOTS = [
-  '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+  '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
 ];
 
 const formatPhoneNumber = (value) => {
