@@ -18,7 +18,7 @@ export default function Landing() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b-2 border-black bg-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="w-full px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-black uppercase tracking-tight" style={{ fontFamily: 'Cabinet Grotesk, sans-serif' }}>
             Fast Lane Lawn Care
           </h1>
@@ -141,7 +141,7 @@ export default function Landing() {
               <MapPin size={32} weight="bold" className="text-[#CCFF00]" />
               <div className="text-left">
                 <p className="text-sm uppercase font-semibold text-[#CCFF00]">Address</p>
-                <p className="text-base font-medium">310 Macadamia Dr<br/>Bloomington, IL 61705</p>
+                <p className="text-base font-medium">310 Macadamia Dr<br />Bloomington, IL 61705</p>
               </div>
             </div>
           </div>
