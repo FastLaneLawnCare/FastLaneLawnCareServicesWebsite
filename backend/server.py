@@ -140,17 +140,17 @@ logger = logging.getLogger(__name__)
 # ==================== MODELS ====================
 
 def send_resend_email(to_email: str, subject: str, html: str = None, template_id: str = None, template_vars: dict = None) -> None:
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if not resend_api_key:
+        logger.warning("RESEND_API_KEY is not configured; skipping email send.")
+        return
+    
     try:
         import resend
     except ImportError:
         logger.warning("resend module not installed; skipping email send.")
         return
     
-    resend_api_key = os.environ.get("RESEND_API_KEY")
-    if not resend_api_key:
-        logger.warning("RESEND_API_KEY is not configured; skipping email send.")
-        return
-
     sender_email = os.environ.get("RESEND_FROM_EMAIL", "Fast Lane Lawn Care <mail@fastlanelawn.com>")
 
     try:
@@ -178,66 +178,69 @@ def send_resend_email(to_email: str, subject: str, html: str = None, template_id
 
 
 def send_booking_emails(booking_doc: dict) -> None:
-    owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
-    customer_email = booking_doc.get("email")
-    template_id = os.environ.get("RESEND_TEMPLATE_ID", "").strip() or None
+    try:
+        owner_email = os.environ.get("OWNER_EMAIL") or os.environ.get("ADMIN_EMAIL")
+        customer_email = booking_doc.get("email")
+        template_id = os.environ.get("RESEND_TEMPLATE_ID", "").strip() or None
 
-    template_vars = {
-        "booking_id": booking_doc.get("booking_id", ""),
-        "appointment_date": booking_doc.get("date", ""),
-        "appointment_time": booking_doc.get("time", ""),
-        "service_address": booking_doc.get("address", ""),
-        "payment_method": (booking_doc.get("payment_method") or "").upper(),
-        "payment_amount": booking_doc.get("amount", ""),
-    }
+        template_vars = {
+            "booking_id": booking_doc.get("booking_id", ""),
+            "appointment_date": booking_doc.get("date", ""),
+            "appointment_time": booking_doc.get("time", ""),
+            "service_address": booking_doc.get("address", ""),
+            "payment_method": (booking_doc.get("payment_method") or "").upper(),
+            "payment_amount": booking_doc.get("amount", ""),
+        }
 
-    if customer_email:
-        if template_id:
+        if customer_email:
+            if template_id:
+                send_resend_email(
+                    customer_email,
+                    "Your Fast Lane Lawn Care Booking Is Confirmed",
+                    template_id=template_id,
+                    template_vars=template_vars,
+                )
+            else:
+                send_resend_email(
+                    customer_email,
+                    "Booking Received - Fast Lane Lawn Care",
+                    f"""
+                    <h2>Booking Confirmed</h2>
+                    <p>Hi {booking_doc.get('name', 'Customer')},</p>
+                    <p>We received your booking request.</p>
+                    <ul>
+                      <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
+                      <li><strong>Date:</strong> {booking_doc.get('date')}</li>
+                      <li><strong>Time:</strong> {booking_doc.get('time')}</li>
+                      <li><strong>Address:</strong> {booking_doc.get('address')}</li>
+                      <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
+                      <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
+                    </ul>
+                    <p>We will follow up soon.</p>
+                    """,
+                )
+
+        if owner_email:
             send_resend_email(
-                customer_email,
-                "Your Fast Lane Lawn Care Booking Is Confirmed",
-                template_id=template_id,
-                template_vars=template_vars,
-            )
-        else:
-            send_resend_email(
-                customer_email,
-                "Booking Received - Fast Lane Lawn Care",
+                owner_email,
+                f"New Booking: #{booking_doc.get('booking_id')}",
                 f"""
-                <h2>Booking Confirmed</h2>
-                <p>Hi {booking_doc.get('name', 'Customer')},</p>
-                <p>We received your booking request.</p>
+                <h2>New Booking Submitted</h2>
                 <ul>
                   <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
+                  <li><strong>Name:</strong> {booking_doc.get('name')}</li>
+                  <li><strong>Email:</strong> {booking_doc.get('email')}</li>
+                  <li><strong>Phone:</strong> {booking_doc.get('phone')}</li>
                   <li><strong>Date:</strong> {booking_doc.get('date')}</li>
                   <li><strong>Time:</strong> {booking_doc.get('time')}</li>
                   <li><strong>Address:</strong> {booking_doc.get('address')}</li>
                   <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
                   <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
                 </ul>
-                <p>We will follow up soon.</p>
                 """,
             )
-
-    if owner_email:
-        send_resend_email(
-            owner_email,
-            f"New Booking: #{booking_doc.get('booking_id')}",
-            f"""
-            <h2>New Booking Submitted</h2>
-            <ul>
-              <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
-              <li><strong>Name:</strong> {booking_doc.get('name')}</li>
-              <li><strong>Email:</strong> {booking_doc.get('email')}</li>
-              <li><strong>Phone:</strong> {booking_doc.get('phone')}</li>
-              <li><strong>Date:</strong> {booking_doc.get('date')}</li>
-              <li><strong>Time:</strong> {booking_doc.get('time')}</li>
-              <li><strong>Address:</strong> {booking_doc.get('address')}</li>
-              <li><strong>Payment Method:</strong> {booking_doc.get('payment_method')}</li>
-              <li><strong>Amount:</strong> ${booking_doc.get('amount')}</li>
-            </ul>
-            """,
-        )
+    except Exception as e:
+        logger.error("Failed to send booking emails: %s", e)
 
 
 def send_quote_emails(quote_doc: dict) -> None:
