@@ -3,6 +3,24 @@ import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+axios.defaults.withCredentials = true;
+
+axios.interceptors.response.use(
+  undefined,
+  async (error) => {
+    if (error.response?.status === 401 && !error.config._retry) {
+      error.config._retry = true;
+      try {
+        await axios.post(`${API}/auth/refresh`, {});
+        return axios(error.config);
+      } catch (refreshError) {
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {

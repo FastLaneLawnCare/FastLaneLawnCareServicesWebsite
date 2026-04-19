@@ -43,9 +43,9 @@ export default function MyAccount() {
   const fetchAccountData = useCallback(async () => {
       try {
         const [bookingsRes, quotesRes, invoicesRes] = await Promise.all([
-          axios.get(`${API}/bookings/mine`, { withCredentials: true }),
-          axios.get(`${API}/quotes/mine`, { withCredentials: true }),
-          axios.get(`${API}/invoices/mine`, { withCredentials: true })
+          axios.get(`${API}/bookings/mine`),
+          axios.get(`${API}/quotes/mine`),
+          axios.get(`${API}/invoices/mine`)
         ]);
   
         setBookings(ensureArray(bookingsRes.data));
@@ -143,16 +143,22 @@ export default function MyAccount() {
     
     setCancellingId(selectedBookingId);
     setCancelDialogOpen(false);
+    
     try {
-      await axios.post(`${API}/bookings/${selectedBookingId}/cancel`, {}, { withCredentials: true });
+      await axios.post(`${API}/bookings/${selectedBookingId}/cancel`);
       toast.success('Booking cancelled');
       fetchAccountData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to cancel booking');
-    } finally {
-      setCancellingId(null);
-      setSelectedBookingId(null);
+      console.error('Cancel error:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please log in again');
+        navigate('/login', { state: { from: '/my-account' } });
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to cancel booking');
+      }
     }
+    setCancellingId(null);
+    setSelectedBookingId(null);
   };
 
   const openCancelDialog = (bookingId) => {

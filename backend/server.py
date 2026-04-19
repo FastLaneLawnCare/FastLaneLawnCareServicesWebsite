@@ -767,7 +767,17 @@ async def delete_booking(booking_id: str, request: Request):
 
 @api_router.post("/bookings/{booking_id}/cancel")
 async def cancel_booking(booking_id: str, request: Request):
-    user = await get_current_user(request)
+    print(f"Cancel booking {booking_id}")
+    try:
+        user = await get_current_user(request)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Auth exception: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
+    
+    print(f"User authenticated: {user.get('email')}")
+    user_id = user.get("user_id")
     
     booking = await db.bookings.find_one({"booking_id": booking_id}, {"_id": 0})
     if not booking:
