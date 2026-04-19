@@ -140,7 +140,11 @@ logger = logging.getLogger(__name__)
 # ==================== MODELS ====================
 
 def send_resend_email(to_email: str, subject: str, html: str = None, template_id: str = None, template_vars: dict = None) -> None:
-    import resend
+    try:
+        import resend
+    except ImportError:
+        logger.warning("resend module not installed; skipping email send.")
+        return
     
     resend_api_key = os.environ.get("RESEND_API_KEY")
     if not resend_api_key:
@@ -148,23 +152,24 @@ def send_resend_email(to_email: str, subject: str, html: str = None, template_id
         return
 
     sender_email = os.environ.get("RESEND_FROM_EMAIL", "Fast Lane Lawn Care <mail@fastlanelawn.com>")
-    resend.api_key = resend_api_key
-
-    email_params = {
-        "from": sender_email,
-        "to": [to_email],
-        "subject": subject,
-    }
-
-    if template_id and template_vars:
-        email_params["template"] = {
-            "id": template_id,
-            "variables": template_vars
-        }
-    elif html:
-        email_params["html"] = html
 
     try:
+        resend.api_key = resend_api_key
+
+        email_params = {
+            "from": sender_email,
+            "to": [to_email],
+            "subject": subject,
+        }
+
+        if template_id and template_vars:
+            email_params["template"] = {
+                "id": template_id,
+                "variables": template_vars
+            }
+        elif html:
+            email_params["html"] = html
+
         response = resend.Emails.send(email_params)
         if response.get("error"):
             logger.error("Resend email failed: %s", response.get("error"))
