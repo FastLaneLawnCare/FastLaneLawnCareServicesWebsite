@@ -3,6 +3,11 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 
 ## To Do List 📝
 ### Bookings 📚 
+- [ ] Allign "Book Now" Button more to the left.
+- [ ] resize the Calender parent frame so it doesnt look weird. (theres empty space right now)
+- [ ] Change the Time options to every hour instead of every 30 minutes.
+- [ ] Remove the "House Number" field for the address, instead merge it into one.
+- [ ] Setup PayPal Keys
 - [ ] Replace random booking IDs with checkout IDs. (Must match email booking ID sent to customer)
 - [ ] Move "Scrap Pickup" to the bottom.
 - [ ] Change the "Quote" button color to green.
@@ -15,6 +20,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [x] Fix Bookings displaying globally.
 - [ ] Fix Total booking text. (currently displays total bookings globally)
 - [ ] Reset Password Support (With Email)
+- [ ] Add an option for clients to cancel bookings that were set to be paid with cash
 ### Admin Dashboard 👑
 - [ ] Add a Logout Button.
 - [ ] Remove delete capability for bookings. (CEO-only function)
@@ -23,8 +29,6 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 ### Appearance 🎨
 - [x] Embed Support.
 - [ ] Add A custom "Page Not Found" redirect whenever a page is not found or something fails.
-### Payment 🤑
-- [ ] Create PayPal Account + Get PayPal API Keys
 
 ## API's 📶
 ### Testing 🔨
