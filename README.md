@@ -27,6 +27,7 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [ ] Remove delete capability for bookings. (CEO-only function)
 - [ ] Staff Section pay rate settings should be hidden from everybody but the CEO. (Currently greyed out, but still visible)
 - [ ] Add manual controls to change Booking status for if the booking has been Confirmed and if the payment has went through.
+- [ ] Reorder the buttons (Bookings, Quotes, Invoices, Staff)
 ### Appearance 🎨
 - [x] Embed Support.
 - [ ] Add A custom "Page Not Found" redirect whenever a page is not found or something fails.
