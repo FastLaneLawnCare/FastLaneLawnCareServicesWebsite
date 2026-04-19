@@ -263,9 +263,9 @@ export default function Booking() {
       <div className="max-w-3xl mx-auto px-6 py-16">
         {/* Progress Indicator */}
         <div className="mb-12" data-testid="progress-indicator">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-center gap-6">
             {BOOKING_STAGES.map((stageLabel, s) => (
-              <div key={s} className="flex items-center w-full">
+              <div key={s} className="flex items-center">
 
                 {/* STEP */}
                 <div className="flex flex-col items-center">
