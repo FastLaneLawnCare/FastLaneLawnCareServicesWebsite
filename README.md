@@ -21,14 +21,14 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 - [x] Fix Bookings displaying globally.
 - [ ] Fix Total booking text. (currently displays total bookings globally)
 - [ ] Reset Password Support (With Email)
-- [ ] Add an option for clients to cancel bookings that were set to be paid with cash
+- [x]  Add an option for clients to cancel bookings that were set to be paid with cash
 ### Admin Dashboard 👑
-- [ ] Add a Logout Button.
+- [x] Add a Logout Button.
 - [ ] Have the "Staff Dashboard" button instead display their role (Ex. CEO DASHBOARD)
 - [x] Remove delete capability for bookings. (CEO-only function)
 - [ ] Staff Section pay rate settings should be hidden from everybody but the CEO. (Currently greyed out, but still visible)
 - [ ] Add manual controls to change Booking status for if the booking has been Confirmed and if the payment has went through.
-- [ ] Reorder the buttons (Bookings, Quotes, Invoices, Staff)
+- [x] Reorder the buttons (Bookings, Quotes, Invoices, Staff)
 ### Appearance 🎨
 - [x] Embed Support.
 - [ ] Add A custom "Page Not Found" redirect whenever a page is not found or something fails.
