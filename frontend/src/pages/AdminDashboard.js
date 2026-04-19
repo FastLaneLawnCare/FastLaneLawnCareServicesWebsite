@@ -10,7 +10,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useContext(AuthContext);
+  const { user, loading: authLoading, logout } = useContext(AuthContext);
   const role = (user?.role || '').toLowerCase();
   const isCEO = role === 'ceo';
   const isManager = role === 'manager';
@@ -304,6 +304,12 @@ export default function AdminDashboard() {
               className="px-4 py-2 bg-[#CCFF00] text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-[#CCFF00] transition"
             >
               Home Page
+            </button>
+            <button
+              onClick={logout}
+              className="px-4 py-2 bg-white text-black border-2 border-black font-bold uppercase text-sm hover:bg-black hover:text-white transition"
+            >
+              Logout
             </button>
           </div>
         </div>
