@@ -5,16 +5,17 @@ This file serves as documentation for our [Website](https://fastlanelawn.com/).
 ### Bookings 📚 
 - [x] Allign "Book Now" Button more to the left.
 - [x] resize the Calender parent frame so it doesnt look weird. (theres empty space right now)
-- [ ] Change the Time options to every hour instead of every 30 minutes.
+- [x] Change the Time options to every hour instead of every 30 minutes.
 - [ ] Remove the "House Number" field for the address, instead merge it into one.
 - [ ] Setup PayPal Keys
 - [ ] Replace random booking IDs with checkout IDs. (Must match email booking ID sent to customer)
 - [ ] Move "Scrap Pickup" to the bottom.
 - [ ] Change the "Quote" button color to green.
-- [ ] Center the text for the stage titles.
+- [x] Center the text for the stage titles.
+- [x] Fix the grey line cutting off
 - [ ] Add A drop down menu for cities that we offer service in.
 - [ ] Add More details to the "Booking Summary" Section. (Phone Number &  Email)
-- [ ] Add "Starting At" for lawn mowing.
+- [x] Add "Starting At" for lawn mowing.
 - [ ] Force quotes for lawn mowing.
 ### Account Dashboard 🧑
 - [x] Fix Bookings displaying globally.

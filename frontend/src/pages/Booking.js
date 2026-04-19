@@ -265,10 +265,10 @@ export default function Booking() {
         <div className="mb-12" data-testid="progress-indicator">
           <div className="flex items-start justify-between">
             {BOOKING_STAGES.map((stageLabel, s) => (
-              <div key={s} className="flex flex-1 items-center">
+              <div key={s} className="flex items-center w-full">
 
                 {/* STEP */}
-                <div className="flex flex-col items-center flex-1">
+                <div className="flex flex-col items-center">
 
                   {/* Number */}
                   <div
