@@ -49,9 +49,7 @@ async def initialize_booking_counter():
         start_seq = 1
         if last_booking and "booking_id" in last_booking:
             try:
-                parts = last_booking["booking_id"].split("-")
-                if len(parts) >= 2:
-                    start_seq = int(parts[-1]) + 1
+                start_seq = int(last_booking["booking_id"]) + 1
             except:
                 pass
         await db.counters.insert_one({"_id": "booking_counter", "seq": start_seq})
@@ -168,7 +166,7 @@ def send_booking_emails(booking_doc: dict) -> None:
             <p>Hi {booking_doc.get('name', 'Customer')},</p>
             <p>We received your booking request.</p>
             <ul>
-              <li><strong>Booking ID:</strong> {booking_doc.get('booking_id')}</li>
+              <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
               <li><strong>Date:</strong> {booking_doc.get('date')}</li>
               <li><strong>Time:</strong> {booking_doc.get('time')}</li>
               <li><strong>Address:</strong> {booking_doc.get('address')}</li>
@@ -182,11 +180,11 @@ def send_booking_emails(booking_doc: dict) -> None:
     if owner_email:
         send_resend_email(
             owner_email,
-            f"New Booking: {booking_doc.get('booking_id')}",
+            f"New Booking: #{booking_doc.get('booking_id')}",
             f"""
             <h2>New Booking Submitted</h2>
             <ul>
-              <li><strong>Booking ID:</strong> {booking_doc.get('booking_id')}</li>
+              <li><strong>Booking ID:</strong> #{booking_doc.get('booking_id')}</li>
               <li><strong>Name:</strong> {booking_doc.get('name')}</li>
               <li><strong>Email:</strong> {booking_doc.get('email')}</li>
               <li><strong>Phone:</strong> {booking_doc.get('phone')}</li>
@@ -651,7 +649,7 @@ async def create_booking(booking_data: BookingCreate, request: Request):
         user_id = None
     
     booking_seq = await get_next_booking_number()
-    booking_id = f"FL{datetime.now(timezone.utc).strftime('%m%d%y')}-{booking_seq:04d}"
+    booking_id = f"{booking_seq:04d}"
     
     booking_doc = {
         "booking_id": booking_id,
