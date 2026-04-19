@@ -42,17 +42,32 @@ async def get_next_booking_number():
     )
     return counter["seq"]
 
-async def initialize_booking_counter():
-    existing = await db.counters.find_one({"_id": "booking_counter"})
-    if not existing:
-        last_booking = await db.bookings.find_one(sort=[("created_at", -1)])
-        start_seq = 1
-        if last_booking and "booking_id" in last_booking:
-            try:
-                start_seq = int(last_booking["booking_id"]) + 1
-            except:
-                pass
-        await db.counters.insert_one({"_id": "booking_counter", "seq": start_seq})
+async def migrate_old_booking_ids():
+    cursor = db.bookings.find({}).sort("created_at", 1)
+    bookings = await cursor.to_list(length=10000)
+    
+    max_seq = 0
+    for i, booking in enumerate(bookings):
+        old_id = booking.get("booking_id", "")
+        
+        if old_id.isdigit():
+            max_seq = max(max_seq, int(old_id))
+            continue
+        
+        new_id = f"{i + 1:04d}"
+        await db.bookings.update_one(
+            {"_id": booking["_id"]},
+            {"$set": {"booking_id": new_id}}
+        )
+        max_seq = max(max_seq, i + 1)
+    
+    await db.counters.update_one(
+        {"_id": "booking_counter"},
+        {"$set": {"seq": max_seq + 1}},
+        upsert=True
+    )
+    
+    return len(bookings)
 
 # Create the main app
 
@@ -1496,7 +1511,9 @@ async def startup():
     
     await db.users.create_index("email", unique=True)
     await db.login_attempts.create_index("identifier")
-    await initialize_booking_counter()
+    migrated = await migrate_old_booking_ids()
+    if migrated > 0:
+        print(f"✅ Migrated {migrated} old booking IDs to new format")
     
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@fastlanelawn.com")
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")
