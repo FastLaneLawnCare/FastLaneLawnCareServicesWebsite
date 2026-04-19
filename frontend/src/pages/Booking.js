@@ -14,9 +14,7 @@ const LAST_STAGE_INDEX = BOOKING_STAGES.length - 1;
 const MIN_BOOKING_DAYS_AHEAD = 2;
 
 const TIME_SLOTS = [
-  '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
-  '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
-  '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM'
+  '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
 ];
 
 const formatPhoneNumber = (value) => {
@@ -52,7 +50,7 @@ export default function Booking() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [loading, setLoading] = useState(false);
   const services = [
-    { id: 'lawn_mowing', name: 'Lawn Mowing', description: 'Includes: Lawn Mowing, Edge Trimming, and Debris Removal', price: 30 },
+    { id: 'lawn_mowing', name: 'Lawn Mowing', description: 'Includes: Lawn Mowing, Edge Trimming, and Debris Removal', price: 30, note: 'Starting at' },
     { id: 'junk_removal_house', name: 'Junk Removal - Full House', description: 'Complete house junk removal', price: 350, note: 'Starting at' },
     { id: 'junk_removal_garage', name: 'Junk Removal - Garage/Shed/Storage', description: 'Garage, shed & storage units', price: 150, note: 'Starting at' },
     { id: 'junk_removal_sidewalk', name: 'Junk Removal - Sidewalk', description: 'Sidewalk junk removal', price: 25, note: 'Starting at' },
