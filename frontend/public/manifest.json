@@ -30,12 +30,5 @@
   "categories": [
     "business",
     "lifestyle"
-  ],
-  "screenshots": [
-    {
-      "src": "/preview.png",
-      "sizes": "1301x423",
-      "type": "image/png"
-    }
   ]
 }
